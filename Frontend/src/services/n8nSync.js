@@ -3,10 +3,10 @@
  * Relays user authentication data to n8n Webhook for Google Sheets storage.
  */
 
-const N8N_WEBHOOK_URL = "/n8n-auth/auth-sync";
+const VITE_N8N_AUTH_TARGET = import.meta.env.VITE_N8N_AUTH_TARGET;
 
 export const syncUserToSheet = async (user, authMethod = "email") => {
-  if (!N8N_WEBHOOK_URL) return;
+  if (!VITE_N8N_AUTH_TARGET) return;
 
   const payload = {
     uid: user.uid,
@@ -16,11 +16,12 @@ export const syncUserToSheet = async (user, authMethod = "email") => {
     timestamp: new Date().toISOString(),
   };
 
-  console.log('🚀 n8n Sync: Internal Trigger Fired', payload);
+  console.log('🚀 n8n Sync: Internal Trigger Fired', payload) ;
+  
 
   try {
     // Production Standard: Sending clean JSON with CORS support.
-    fetch(N8N_WEBHOOK_URL, {
+    fetch(VITE_N8N_AUTH_TARGET, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
