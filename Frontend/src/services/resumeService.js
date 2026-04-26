@@ -5,7 +5,8 @@
 import { db } from "../firebase";
 import { collection, query, where, getDocs, doc, setDoc, getDoc } from "firebase/firestore";
 
-const N8N_RESUME_URL = "/n8n-resume/resume-parse";
+const VITE_N8N_RESUME_TARGET = import.meta.env.VITE_N8N_RESUME_TARGET;
+
 
 export const uploadResume = async (file, userId, email) => {
   if (!file) return { success: false, error: 'No file provided' };
@@ -16,7 +17,7 @@ export const uploadResume = async (file, userId, email) => {
   formData.append('resume', file);
 
   try {
-    const response = await fetch(N8N_RESUME_URL, {
+    const response = await fetch(VITE_N8N_RESUME_TARGET, {
       method: 'POST',
       body: formData,
     });
