@@ -6,6 +6,8 @@ import {
   signOut,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   updateProfile
 } from "firebase/auth";
 import { auth } from "../firebase";
@@ -20,11 +22,30 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!isMounted) return;
       setUser(user);
       setLoading(false);
     });
-    return unsubscribe;
+
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (result?.user) {
+          await syncUserToSheet(result.user, "google");
+        }
+      })
+      .catch((error) => {
+        if (error?.code !== "auth/no-auth-event") {
+          console.warn("Firebase redirect sign-in result error:", error);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, []);
 
   const signup = async (email, password, displayName) => {
@@ -42,9 +63,22 @@ export const AuthProvider = ({ children }) => {
 
   const loginWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    const userCredential = await signInWithPopup(auth, provider);
-    await syncUserToSheet(userCredential.user, "google");
-    return userCredential;
+    try {
+      const userCredential = await signInWithPopup(auth, provider);
+      await syncUserToSheet(userCredential.user, "google");
+      return userCredential;
+    } catch (error) {
+      if (
+        error?.code === "auth/popup-blocked" ||
+        error?.code === "auth/popup-closed-by-user" ||
+        error?.code === "auth/cancelled-popup-request"
+      ) {
+        await signInWithRedirect(auth, provider);
+        return null;
+      }
+
+      throw error;
+    }
   };
 
   const logout = () => {
