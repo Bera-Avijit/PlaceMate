@@ -1,36 +1,128 @@
 /**
  * resumeService.js
- * Handles file uploads and AI parsing signals for user resumes.
+ * Handles file uploads, AI parsing signals, and Firestore data retrieval for user resumes.
  */
+import { db } from "../firebase";
+import { collection, query, where, getDocs, doc, setDoc, getDoc } from "firebase/firestore";
 
-const N8N_RESUME_URL = "/n8n-api-test/resume-parse";
+const N8N_RESUME_URL = "/n8n-resume/resume-parse";
 
 export const uploadResume = async (file, userId, email) => {
   if (!file) return { success: false, error: 'No file provided' };
 
-  // Create a FormData object to send the file to n8n
+  // Create a FormData object as per latest documentation (only userId and resume)
   const formData = new FormData();
+  formData.append('userId', userId);
   formData.append('resume', file);
-  formData.append('uid', userId);
-  formData.append('email', email);
-  formData.append('timestamp', new Date().toISOString());
 
   try {
-    const response = await fetch(`${N8N_RESUME_URL}?t=${Date.now()}`, {
+    const response = await fetch(N8N_RESUME_URL, {
       method: 'POST',
-      body: formData, // Standard Multi-part/Form-Data
+      body: formData,
     });
 
     if (!response.ok) {
         throw new Error(`Upload Failed: ${response.status}`);
     }
 
-    // Since we are using production-standard JSON, we can wait for success
-    const data = await response.json();
-    return { success: true, data };
+    const rawData = await response.json();
+    
+    // Transform new detailed Firestore-style JSON to a clean object
+    const cleanedData = rawData.fields ? {
+      level: rawData.fields.level?.stringValue || "unknown",
+      username: rawData.fields.username?.stringValue || "user",
+      companies: rawData.fields.company?.arrayValue?.values?.map(v => {
+        const f = v.mapValue.fields;
+        return {
+          name: f.name?.stringValue || "Unknown Company",
+          location: f.location?.stringValue || "Remote",
+          type: f.type?.stringValue || "General",
+          rank: f.rank?.integerValue || "0",
+          matchScore: f.match_score?.integerValue || "0",
+          matchReason: f.match_reason?.stringValue || "",
+          applyReadiness: f.apply_readiness?.stringValue || "needs_prep",
+          careersUrl: f.careers_url?.stringValue || "#",
+          skillOverlap: f.skill_overlap?.arrayValue?.values?.map(sv => sv.stringValue) || [],
+          interviewFocus: f.interview_focus?.arrayValue?.values?.map(sv => sv.stringValue) || [],
+          weakAreaWarning: f.weak_area_warning?.stringValue || ""
+        };
+      }) || []
+    } : rawData;
+    
+    // PERSISTENCE: Save the results to Firestore immediately
+    await saveUserResults(userId, cleanedData);
+
+    return { success: true, data: cleanedData };
 
   } catch (error) {
     console.error('Resume Upload Error:', error);
     return { success: false, error: error.message };
+  }
+};
+
+export const getUserResults = async (userId) => {
+  try {
+    const docRef = doc(db, "placemate-user-company-recomendation", userId);
+    const docSnap = await getDoc(docRef);
+    
+    if (!docSnap.exists()) return null;
+
+    const data = docSnap.data();
+
+    // Transform Firestore data back to the UI structure
+    const parseFields = (d) => ({
+      level: d.level || "unknown",
+      username: d.username || "user",
+      companies: d.company?.map(c => ({
+        name: c.name || "Unknown Company",
+        location: c.location || "Remote",
+        type: c.type || "General",
+        rank: c.rank || "0",
+        matchScore: parseInt(c.match_score || c.matchScore || "0"),
+        matchReason: c.match_reason || c.matchReason || "",
+        applyReadiness: c.apply_readiness || c.applyReadiness || "needs_prep",
+        careersUrl: c.careers_url || c.careersUrl || "#",
+        skillOverlap: c.skill_overlap || c.skillOverlap || [],
+        interviewFocus: c.interview_focus || c.interviewFocus || [],
+        weakAreaWarning: c.weak_area_warning || c.weakAreaWarning || ""
+      })) || []
+    });
+
+    return parseFields(data);
+  } catch (error) {
+    console.error('❌ Error fetching persistent results:', error);
+    return null;
+  }
+};
+
+export const saveUserResults = async (userId, data) => {
+  try {
+    // Map the cleaned UI data to the Firestore structure
+    // We nest the companies inside a 'company' array to match your n8n naming convention
+    const firestoreData = {
+      level: data.level,
+      username: userId,
+      company: data.companies.map(c => ({
+        name: c.name,
+        location: c.location,
+        type: c.type,
+        rank: c.rank,
+        match_score: c.matchScore || c.match_score || 0,
+        match_reason: c.matchReason || c.match_reason || "",
+        apply_readiness: c.applyReadiness || c.apply_readiness || "needs_prep",
+        careers_url: c.careersUrl || c.careers_url || "#",
+        skill_overlap: c.skillOverlap || c.skill_overlap || [],
+        interview_focus: c.interviewFocus || c.interview_focus || [],
+        weak_area_warning: c.weakAreaWarning || c.weak_area_warning || ""
+      })),
+      hasParsed: true,
+      lastUpdated: new Date().toISOString()
+    };
+
+    const docRef = doc(db, "placemate-user-company-recomendation", userId);
+    await setDoc(docRef, firestoreData);
+    console.log("✅ Resume analysis saved to Firestore for persistent access.");
+  } catch (error) {
+    console.error("❌ Error saving results to Firestore:", error);
   }
 };

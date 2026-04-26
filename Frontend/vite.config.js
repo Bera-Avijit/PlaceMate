@@ -9,16 +9,16 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     server: {
       proxy: {
-        '/n8n-api': {
-          target: env.VITE_N8N_TARGET || 'https://n8n.avijit-bera.cfd',
+        '/n8n-auth': {
+          target: env.VITE_N8N_AUTH_TARGET || 'https://n8n.avijit-bera.cfd',
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/n8n-api/, '/webhook'),
+          rewrite: (path) => path.replace(/^\/n8n-auth/, '/webhook'),
           secure: false
         },
-        '/n8n-api-test': {
-          target: env.VITE_N8N_TARGET || 'https://n8n.avijit-bera.cfd',
+        '/n8n-resume': {
+          target: env.VITE_N8N_RESUME_TARGET || 'https://abrar1.app.n8n.cloud',
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/n8n-api-test/, '/webhook-test'),
+          rewrite: (path) => path.replace(/^\/n8n-resume/, '/webhook'),
           secure: false
         }
       }

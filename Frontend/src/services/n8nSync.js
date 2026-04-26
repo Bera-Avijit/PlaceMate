@@ -3,7 +3,7 @@
  * Relays user authentication data to n8n Webhook for Google Sheets storage.
  */
 
-const N8N_WEBHOOK_URL = "/n8n-api/auth-sync";
+const N8N_WEBHOOK_URL = "/n8n-auth/auth-sync";
 
 export const syncUserToSheet = async (user, authMethod = "email") => {
   if (!N8N_WEBHOOK_URL) return;

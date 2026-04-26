@@ -1,0 +1,144 @@
+{
+  "name": "PlaceMate_User_Sync",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1nR_APjHgHMZbbqpAZuExBm2DS5A2MGxF2OJXsnqehEQ",
+          "mode": "list",
+          "cachedResultName": "PlaceMate AI Master Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nR_APjHgHMZbbqpAZuExBm2DS5A2MGxF2OJXsnqehEQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1126219757,
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nR_APjHgHMZbbqpAZuExBm2DS5A2MGxF2OJXsnqehEQ/edit#gid=1126219757"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "uid": "={{ $json.body.uid }}",
+            "email": "={{ $json.body.email }}",
+            "displayName": "={{ $json.body.displayName }}",
+            "authMethod": "={{ $json.body.authMethod }}",
+            "timestamp": "={{ $json.body.timestamp }}"
+          },
+          "matchingColumns": [
+            "uid"
+          ],
+          "schema": [
+            {
+              "id": "uid",
+              "displayName": "uid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "displayName",
+              "displayName": "displayName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "authMethod",
+              "displayName": "authMethod",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "312df8bb-4c44-498d-8d24-2f3e1d63d965",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        624,
+        -16
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "FBCWDuju1jnw2hfI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "auth-sync",
+        "options": {}
+      },
+      "id": "16026ec8-d72e-49c9-9823-7b97f185f035",
+      "name": "Webhook1",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        368,
+        -16
+      ],
+      "webhookId": "0fd16901-df30-4653-b6c1-4f59c6dae053"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c11f5cbc-3b25-42e7-926c-c1db1f5d347a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3eb209b99795089816718b1b4658ee6af905273471fa5513d70d82ac34818fec"
+  },
+  "id": "3rkeE9waeQ6oNbQj",
+  "tags": []
+}
