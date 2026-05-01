@@ -21,6 +21,7 @@ export const syncUserToSheet = async (user, authMethod = "email") => {
 
   try {
     // Production Standard: Sending clean JSON with CORS support.
+    // URL is now securely pulled from the .env file (abrar1 account)
     fetch(VITE_N8N_AUTH_TARGET, {
       method: 'POST',
       headers: {

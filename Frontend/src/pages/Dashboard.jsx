@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
   Upload, 
   FileText, 
@@ -18,6 +19,7 @@ import Navbar from '../components/Navbar';
 import { uploadResume, getUserResults } from '../services/resumeService';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   // State for resume status
   const [hasUploaded, setHasUploaded] = useState(false);
@@ -27,6 +29,24 @@ const Dashboard = () => {
   const [onboardingMode, setOnboardingMode] = useState('choice'); // choice, upload, basics
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isLoadingPersistent, setIsLoadingPersistent] = useState(true);
+
+  // Free Tier Logic
+  const [unlockedCompany, setUnlockedCompany] = useState(localStorage.getItem('unlockedCompany') || null);
+
+  const handleViewPlan = (companyName) => {
+    if (!unlockedCompany) {
+      // Free tier: unlock first company
+      localStorage.setItem('unlockedCompany', companyName);
+      setUnlockedCompany(companyName);
+      navigate(`/plan/${companyName}`);
+    } else if (unlockedCompany === companyName) {
+      // Already unlocked
+      navigate(`/plan/${companyName}`);
+    } else {
+      // Attempting to view a second company on free tier
+      navigate('/pricing');
+    }
+  };
 
   // Check for existing data on mount
   useEffect(() => {
@@ -324,9 +344,18 @@ const Dashboard = () => {
                               
                               <p className="text-slate-400 text-xs leading-relaxed font-medium mb-8 italic">"{company.matchReason}"</p>
                               
-                              <a href={company.careersUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-[10px] font-black text-amber-500 uppercase tracking-[0.2em] hover:gap-4 transition-all group-hover:text-amber-400">
-                                Official Careers <ArrowRight size={14} />
-                              </a>
+                              <div className="flex items-center gap-4">
+                                <button 
+                                  onClick={() => handleViewPlan(company.name)}
+                                  className="px-6 py-3 bg-amber-500 text-black font-black uppercase tracking-widest text-[9px] rounded-xl hover:bg-amber-400 transition-all active:scale-95 flex items-center gap-2"
+                                >
+                                  {unlockedCompany === company.name ? 'View Prep Plan' : (unlockedCompany ? 'Unlock Plan 🔒' : 'Unlock Free Plan')}
+                                  <ArrowRight size={14} />
+                                </button>
+                                <a href={company.careersUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-white transition-all">
+                                  Careers
+                                </a>
+                              </div>
                             </div>
 
                             {/* Right: Technical Deep Dive */}

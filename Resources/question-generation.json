@@ -1,0 +1,213 @@
+{
+  "data": [
+    {
+      "name": "projects/bulkorder-d570e/databases/(default)/documents/placemate-user-questions/5VQzebaPIkOPFtLJ5ERK",
+      "fields": {
+        "question": {
+          "stringValue": "What are event listeners in JavaScript? Explain how they work in the context of handling user interactions during Firebase authentication, such as button clicks for signup or login."
+        },
+        "level": { "stringValue": "beginner" },
+        "id": { "stringValue": "Q1" },
+        "topic": { "stringValue": "Event Listeners" },
+        "session_tip": {
+          "stringValue": "You're making great progress! Remember to focus on understanding the underlying concepts, not just copying code. Firebase is a powerful platform, and a solid foundation will help you build amazing applications."
+        },
+        "resource_url": {
+          "stringValue": "https://developer.mozilla.org/en-US/docs/Web/API/EventListener"
+        },
+        "difficulty": { "stringValue": "easy" },
+        "why_this_matters": {
+          "stringValue": "Understanding event handling is fundamental to building interactive user interfaces for Firebase applications."
+        },
+        "type": { "stringValue": "concept" },
+        "username": { "stringValue": "WdHzoRN4XocBPGr08MtIQpQcUno1" },
+        "task_id": { "stringValue": "" },
+        "target_company": { "stringValue": "Firebase" },
+        "resource_label": { "stringValue": "MDN Event Listeners" },
+        "session": { "integerValue": "1" },
+        "title": { "stringValue": "Event Listeners Explained" },
+        "day_title": {
+          "stringValue": "Firebase Authentication – User Management"
+        },
+        "estimated_total_time": { "stringValue": "105 min" },
+        "platform": { "stringValue": "MDN" },
+        "link": { "stringValue": "" },
+        "expected_time": { "stringValue": "15 min" },
+        "hint": {
+          "stringValue": "Think about how you 'tell' the browser to react when something happens."
+        },
+        "day": { "integerValue": "2" }
+      },
+      "createTime": "2026-05-01T04:21:38.522205Z",
+      "updateTime": "2026-05-01T04:21:38.522205Z"
+    },
+    {
+      "name": "projects/bulkorder-d570e/databases/(default)/documents/placemate-user-questions/OImYhWZtelCOEMPqEfo4",
+      "fields": {
+        "difficulty": { "stringValue": "easy" },
+        "link": { "stringValue": "" },
+        "question": {
+          "stringValue": "Task Description: Create a simple React component with a button. Each time the button is clicked, increment a counter displayed on the page.\nWhat to Build: A React component with a button and a counter.\nAcceptance Criteria:\n* The counter starts at 0.\n* Clicking the button increments the counter by 1.\n* The counter value is displayed on the page."
+        },
+        "day": { "integerValue": "2" },
+        "platform": { "stringValue": "Custom" },
+        "title": { "stringValue": "Simple Button Click Counter" },
+        "type": { "stringValue": "applied" },
+        "expected_time": { "stringValue": "20 min" },
+        "topic": { "stringValue": "Adding Event Listeners to Buttons" },
+        "estimated_total_time": { "stringValue": "105 min" },
+        "username": { "stringValue": "WdHzoRN4XocBPGr08MtIQpQcUno1" },
+        "level": { "stringValue": "beginner" },
+        "target_company": { "stringValue": "Firebase" },
+        "why_this_matters": {
+          "stringValue": "This exercise reinforces event handling skills, which are crucial for triggering Firebase authentication actions."
+        },
+        "day_title": {
+          "stringValue": "Firebase Authentication – User Management"
+        },
+        "hint": {
+          "stringValue": "Use `useState` to manage the counter value and `onClick` to attach the event listener."
+        },
+        "resource_url": {
+          "stringValue": "https://react.dev/learn/handling-events"
+        },
+        "resource_label": { "stringValue": "React Button Example" },
+        "task_id": { "stringValue": "" },
+        "id": { "stringValue": "Q2" },
+        "session_tip": {
+          "stringValue": "You're making great progress! Remember to focus on understanding the underlying concepts, not just copying code. Firebase is a powerful platform, and a solid foundation will help you build amazing applications."
+        },
+        "session": { "integerValue": "1" }
+      },
+      "createTime": "2026-05-01T04:21:38.517741Z",
+      "updateTime": "2026-05-01T04:21:38.517741Z"
+    },
+    {
+      "name": "projects/bulkorder-d570e/databases/(default)/documents/placemate-user-questions/lAtxYjZSaIRLLoSA5iBu",
+      "fields": {
+        "level": { "stringValue": "beginner" },
+        "difficulty": { "stringValue": "easy" },
+        "session_tip": {
+          "stringValue": "You're making great progress! Remember to focus on understanding the underlying concepts, not just copying code. Firebase is a powerful platform, and a solid foundation will help you build amazing applications."
+        },
+        "day": { "integerValue": "2" },
+        "resource_label": { "stringValue": "Firebase Auth Methods" },
+        "question": {
+          "stringValue": "What are the different authentication methods supported by Firebase Authentication? Explain the trade-offs between using email/password authentication versus social login providers like Google."
+        },
+        "hint": {
+          "stringValue": "Consider factors like user convenience, security, and data privacy."
+        },
+        "session": { "integerValue": "2" },
+        "resource_url": {
+          "stringValue": "https://firebase.google.com/docs/auth/providers"
+        },
+        "topic": { "stringValue": "Supported Authentication Methods" },
+        "task_id": { "stringValue": "" },
+        "type": { "stringValue": "concept" },
+        "username": { "stringValue": "WdHzoRN4XocBPGr08MtIQpQcUno1" },
+        "estimated_total_time": { "stringValue": "105 min" },
+        "platform": { "stringValue": "Firebase Docs" },
+        "target_company": { "stringValue": "Firebase" },
+        "why_this_matters": {
+          "stringValue": "Choosing the right authentication method impacts user experience and security within your Firebase application."
+        },
+        "title": { "stringValue": "Firebase Authentication Methods" },
+        "link": { "stringValue": "" },
+        "day_title": {
+          "stringValue": "Firebase Authentication – User Management"
+        },
+        "expected_time": { "stringValue": "15 min" },
+        "id": { "stringValue": "Q3" }
+      },
+      "createTime": "2026-05-01T04:21:38.514449Z",
+      "updateTime": "2026-05-01T04:21:38.514449Z"
+    },
+    {
+      "name": "projects/bulkorder-d570e/databases/(default)/documents/placemate-user-questions/tRrIlIUwDdBixjY1v0sI",
+      "fields": {
+        "difficulty": { "stringValue": "medium" },
+        "session": { "integerValue": "2" },
+        "level": { "stringValue": "beginner" },
+        "topic": {
+          "stringValue": "Implementing Email/Password Authentication"
+        },
+        "expected_time": { "stringValue": "25 min" },
+        "resource_label": { "stringValue": "Firebase Email/Password Signup" },
+        "day_title": {
+          "stringValue": "Firebase Authentication – User Management"
+        },
+        "type": { "stringValue": "hands_on" },
+        "question": {
+          "stringValue": "Feature Description: Implement a basic email/password signup form in a React application using Firebase Authentication.\nTech to Use: `createUserWithEmailAndPassword` from Firebase Auth.\nDone Criteria:\n* The form includes fields for email and password.\n* Submitting the form creates a new user in Firebase Authentication.\n* Display a success message upon successful signup."
+        },
+        "estimated_total_time": { "stringValue": "105 min" },
+        "username": { "stringValue": "WdHzoRN4XocBPGr08MtIQpQcUno1" },
+        "id": { "stringValue": "Q4" },
+        "link": { "stringValue": "" },
+        "platform": { "stringValue": "Firebase" },
+        "day": { "integerValue": "2" },
+        "task_id": { "stringValue": "" },
+        "resource_url": {
+          "stringValue": "https://firebase.google.com/docs/auth/web/email-password-auth"
+        },
+        "session_tip": {
+          "stringValue": "You're making great progress! Remember to focus on understanding the underlying concepts, not just copying code. Firebase is a powerful platform, and a solid foundation will help you build amazing applications."
+        },
+        "title": { "stringValue": "Basic Email/Password Signup" },
+        "why_this_matters": {
+          "stringValue": "This hands-on exercise provides practical experience with the core Firebase Authentication functionality."
+        },
+        "target_company": { "stringValue": "Firebase" },
+        "hint": {
+          "stringValue": "Remember to handle potential errors during the signup process."
+        }
+      },
+      "createTime": "2026-05-01T04:21:38.513861Z",
+      "updateTime": "2026-05-01T04:21:38.513861Z"
+    },
+    {
+      "name": "projects/bulkorder-d570e/databases/(default)/documents/placemate-user-questions/RFn9VAYdrSOzIh27hM1n",
+      "fields": {
+        "session_tip": {
+          "stringValue": "You're making great progress! Remember to focus on understanding the underlying concepts, not just copying code. Firebase is a powerful platform, and a solid foundation will help you build amazing applications."
+        },
+        "day_title": {
+          "stringValue": "Firebase Authentication – User Management"
+        },
+        "topic": { "stringValue": "String Manipulation and Validation" },
+        "resource_url": {
+          "stringValue": "https://leetcode.com/problems/check-if-a-string-contains-all-binary-digits/"
+        },
+        "estimated_total_time": { "stringValue": "105 min" },
+        "type": { "stringValue": "dsa" },
+        "hint": {
+          "stringValue": "Iterate through the string and use character methods to check for uppercase, lowercase, and digits."
+        },
+        "difficulty": { "stringValue": "medium" },
+        "session": { "integerValue": "3" },
+        "link": {
+          "stringValue": "https://leetcode.com/problems/check-if-a-string-contains-all-binary-digits/"
+        },
+        "task_id": { "stringValue": "" },
+        "day": { "integerValue": "2" },
+        "platform": { "stringValue": "LeetCode" },
+        "resource_label": { "stringValue": "LeetCode Problem" },
+        "question": {
+          "stringValue": "Problem: Given a string representing a password, determine if it meets the following criteria: (1) Length is at least 8 characters, (2) Contains at least one uppercase letter, (3) Contains at least one lowercase letter, and (4) Contains at least one digit.\nConstraints: 1 <= string length <= 100\nExample: Input: \"P@sswOrd1\" → Output: true"
+        },
+        "level": { "stringValue": "beginner" },
+        "why_this_matters": {
+          "stringValue": "Validating user input is crucial for security in Firebase Authentication, preventing weak passwords and potential vulnerabilities."
+        },
+        "expected_time": { "stringValue": "30 min" },
+        "target_company": { "stringValue": "Firebase" },
+        "username": { "stringValue": "WdHzoRN4XocBPGr08MtIQpQcUno1" },
+        "id": { "stringValue": "Q5" },
+        "title": { "stringValue": "Validating User Input" }
+      },
+      "createTime": "2026-05-01T04:21:38.527576Z",
+      "updateTime": "2026-05-01T04:21:38.527576Z"
+    }
+  ]
+}

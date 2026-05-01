@@ -80,6 +80,12 @@ const Navbar = () => {
                      Dashboard
                    </button>
                    <button 
+                    onClick={() => navigate('/pricing')}
+                    className="w-full text-left p-3 text-[10px] font-bold uppercase text-slate-400 hover:text-amber-500 transition-colors"
+                   >
+                     Pricing & Plans
+                   </button>
+                   <button 
                     onClick={logout}
                     className="w-full text-left p-3 text-[10px] font-bold uppercase text-red-500 hover:text-red-400 transition-colors flex items-center justify-between"
                    >

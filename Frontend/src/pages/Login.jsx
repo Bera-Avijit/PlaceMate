@@ -69,6 +69,7 @@ const Login = () => {
         window.location.replace('/');
       }
     } catch (err) {
+      console.error("Google Sign-in Error:", err);
       setError(getGoogleAuthErrorMessage(err));
     }
   };

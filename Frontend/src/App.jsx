@@ -7,6 +7,9 @@ import Dashboard from './pages/Dashboard';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import ScrollToTop from './components/ScrollToTop';
+import Pricing from './pages/Pricing';
+import CompanyPlan from './pages/CompanyPlan';
+import PracticePlan from './pages/PracticePlan';
 
 function App() {
   return (
@@ -18,6 +21,23 @@ function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route 
+              path="/plan/:companyName" 
+              element={
+                <ProtectedRoute>
+                  <CompanyPlan />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/practice/:companyName/:dayNumber" 
+              element={
+                <ProtectedRoute>
+                  <PracticePlan />
+                </ProtectedRoute>
+              } 
+            />
             <Route 
               path="/dashboard" 
               element={
