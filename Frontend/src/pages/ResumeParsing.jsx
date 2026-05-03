@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
+import ResumePanel from '../components/sections/ResumePanel';
 import { uploadResume, getUserResults } from '../services/resumeService';
 
 const ResumeParsing = () => {
@@ -194,6 +195,10 @@ const ResumeParsing = () => {
                       </div>
                     </label>
                     <p className="mt-6 text-[10px] text-slate-600 font-bold uppercase tracking-widest">Supports PDF, DOCX (Max 10MB)</p>
+
+                    <div className="w-full mt-10 max-w-2xl">
+                      <ResumePanel parsedData={parsedData} isLoading={isUploading} />
+                    </div>
                   </div>
                 </motion.div>
               )}

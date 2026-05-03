@@ -6,6 +6,13 @@ import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import { generateCompanyPlan, getUserResults, getUserProgress } from '../services/resume';
 
+const loadingSteps = [
+  'Reading your profile and company match data.',
+  'Comparing strengths, gaps, and readiness.',
+  'Building the day-by-day roadmap structure.',
+  'Finalizing your custom prep plan.'
+];
+
 const CompanyPlan = () => {
   const { companyName } = useParams();
   const { user } = useAuth();
@@ -15,14 +22,14 @@ const CompanyPlan = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState({});
+  const [loadingStep, setLoadingStep] = useState(0);
 
   useEffect(() => {
-
-    console.log
     const fetchPlanAndProgress = async () => {
       if (!user) return;
       
       setLoading(true);
+      setLoadingStep(0);
       setError(null);
       
       try {
@@ -56,6 +63,16 @@ const CompanyPlan = () => {
     fetchPlanAndProgress();
   }, [companyName, user]);
 
+  useEffect(() => {
+    if (!loading) return;
+
+    const timer = window.setInterval(() => {
+      setLoadingStep((currentStep) => (currentStep + 1) % loadingSteps.length);
+    }, 1500);
+
+    return () => window.clearInterval(timer);
+  }, [loading]);
+
   return (
     <div className="min-h-screen bg-black text-white selection:bg-amber-500/30 font-inter">
       <Navbar />
@@ -69,11 +86,55 @@ const CompanyPlan = () => {
         </button>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-32 bg-[#0a0a0a] border border-white/5 rounded-[3rem] shadow-2xl relative overflow-hidden">
-             <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 blur-[80px] -mr-32 -mt-32 rounded-full" />
-             <div className="w-16 h-16 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-8" />
-             <h2 className="text-2xl font-black uppercase tracking-widest mb-2">Generating AI Plan</h2>
-             <p className="text-slate-500 text-xs font-bold uppercase tracking-widest animate-pulse">Running {companyName} pipeline via n8n...</p>
+          <div className="bg-[#0a0a0a] border border-amber-500/20 rounded-[3rem] shadow-2xl relative overflow-hidden">
+             <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 blur-[100px] -mr-48 -mt-48 rounded-full pointer-events-none" />
+             <div className="p-10 md:p-16 flex flex-col lg:flex-row lg:items-center gap-10 relative z-10">
+               <div className="w-20 h-20 rounded-[2rem] border border-amber-500/20 bg-amber-500/10 flex items-center justify-center shrink-0 shadow-xl shadow-amber-500/10">
+                 <div className="w-8 h-8 rounded-full border-4 border-amber-500 border-t-transparent animate-spin" />
+               </div>
+               <div className="flex-1">
+                 <div className="flex flex-wrap items-center gap-3 mb-4">
+                   <span className="px-3 py-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-full text-[10px] font-black uppercase tracking-widest">
+                     AI Generated Plan
+                   </span>
+                   <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+                     Estimated 40 to 50 seconds
+                   </span>
+                 </div>
+                 <h2 className="text-3xl md:text-4xl font-black uppercase italic tracking-tight mb-3">Generating Your Prep Plan</h2>
+                 <p className="text-slate-400 text-sm md:text-base font-medium leading-relaxed max-w-3xl mb-8">
+                   We are reading your profile, measuring your fit against {companyName}, and building the roadmap step by step so the final plan feels tailored instead of generic.
+                 </p>
+
+                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+                   {['Profile', 'Match', 'Gaps', 'Roadmap'].map((label, index) => {
+                     const active = index <= loadingStep;
+                     return (
+                       <div key={label} className={`rounded-xl border p-4 ${active ? 'border-amber-500/30 bg-amber-500/10' : 'border-white/5 bg-white/[0.03]'}`}>
+                         <div className={`text-[10px] font-black uppercase tracking-[0.2em] mb-2 ${active ? 'text-amber-400' : 'text-slate-600'}`}>{label}</div>
+                         <div className="h-1.5 rounded-full overflow-hidden bg-white/5">
+                           <motion.div
+                             initial={{ width: 0 }}
+                             animate={{ width: active ? '100%' : '18%' }}
+                             transition={{ duration: 0.5 }}
+                             className="h-full bg-amber-500"
+                           />
+                         </div>
+                       </div>
+                     );
+                   })}
+                 </div>
+
+                 <div className="space-y-3 max-w-2xl">
+                   {loadingSteps.map((step, index) => (
+                     <div key={step} className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/[0.02] p-4">
+                       <div className={`w-2.5 h-2.5 rounded-full ${index <= loadingStep ? 'bg-amber-500 animate-pulse' : 'bg-white/10'}`} />
+                       <p className="text-sm text-slate-300 font-medium">{step}</p>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+             </div>
           </div>
         ) : error ? (
           <div className="bg-[#0a0a0a] border border-red-500/20 rounded-[3rem] p-16 text-center shadow-2xl relative overflow-hidden">

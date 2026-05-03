@@ -29,6 +29,13 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [unlockedCompany, setUnlockedCompany] = useState(localStorage.getItem('unlockedCompany') || null);
+  const quizProgress = analytics?.quizProgress || { completed: 0, total: 0, completionRate: 0, averageScore: 0 };
+  const progressTrend = analytics?.progressTrend || [];
+  const skillProficiency = analytics?.skillProficiency || [];
+  const weeklyGoals = analytics?.weeklyGoals || [];
+  const activeDays = analytics?.activeDays || progressTrend.filter((value) => value > 0).length;
+  const dailyPrepProgress = analytics?.dailyPrepProgress || 0;
+  const momentumScore = analytics?.momentumScore || 0;
 
   const handleViewPlan = (companyName) => {
     if (!unlockedCompany) {
@@ -140,10 +147,10 @@ const Dashboard = () => {
                   {/* Key Metrics Row */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {[
-                      { label: 'Job Readiness', value: `${analytics?.jobReadiness || 42}%`, icon: Briefcase, color: 'from-amber-500 to-amber-600', change: `+${analytics?.skillGrowth || 8}%` },
-                      { label: 'Skill Growth', value: `+${analytics?.skillGrowth || 12}%`, icon: TrendingUp, color: 'from-green-500 to-green-600', change: 'This month' },
-                      { label: 'Companies', value: `${parsedData.companies?.length || 0}`, icon: Target, color: 'from-blue-500 to-blue-600', change: 'Matched' },
-                      { label: 'Quiz Progress', value: `${analytics?.quizProgress?.completed || 0}/${analytics?.quizProgress?.total || 15}`, icon: BookOpen, color: 'from-purple-500 to-purple-600', change: 'Started' },
+                      { label: 'Job Readiness', value: `${analytics?.jobReadiness ?? 0}%`, icon: Briefcase, color: 'from-amber-500 to-amber-600', change: 'From company matches' },
+                      { label: 'Daily Prep', value: `${dailyPrepProgress}%`, icon: TrendingUp, color: 'from-green-500 to-green-600', change: `${quizProgress.completed}/${quizProgress.total} answered • ${momentumScore}% momentum` },
+                      { label: 'Companies', value: `${parsedData.companies?.length || 0}`, icon: Target, color: 'from-blue-500 to-blue-600', change: 'Real matches' },
+                      { label: 'Average Score', value: `${quizProgress.averageScore || 0}%`, icon: BookOpen, color: 'from-purple-500 to-purple-600', change: `${activeDays} active days` },
                     ].map((metric, idx) => (
                       <motion.div
                         key={idx}
@@ -176,30 +183,39 @@ const Dashboard = () => {
                       <div className="flex items-center justify-between mb-8">
                         <div>
                           <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white mb-1">Progress Trend</h3>
-                          <p className="text-[10px] font-bold text-slate-500">Last 7 days</p>
+                          <p className="text-[10px] font-bold text-slate-500">Actual completion rate by day</p>
                         </div>
                         <BarChart3 size={20} className="text-amber-500" />
                       </div>
-                      
-                      <div className="space-y-4">
-                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, idx) => {
-                          const height = analytics?.progressTrend?.[idx] || [35, 45, 38, 52, 48, 62, 75][idx];
-                          return (
-                            <div key={idx} className="flex items-end gap-3">
-                              <span className="text-[9px] font-bold text-slate-600 w-8">{day}</span>
-                              <div className="flex-1 flex items-end gap-1">
-                                <motion.div
-                                  initial={{ height: 0 }}
-                                  animate={{ height: `${height}px` }}
-                                  transition={{ delay: 0.3 + idx * 0.1, duration: 0.6 }}
-                                  className="flex-1 bg-gradient-to-t from-amber-500 to-amber-400 rounded-sm"
-                                />
+
+                      {progressTrend.length > 0 ? (
+                        <div className="space-y-4">
+                          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, idx) => {
+                            const value = progressTrend[idx] || 0;
+                            const height = Math.max(18, value * 1.25);
+                            return (
+                              <div key={idx} className="flex items-end gap-3">
+                                <span className="text-[9px] font-bold text-slate-600 w-8">{day}</span>
+                                <div className="flex-1 flex items-end gap-1">
+                                  <motion.div
+                                    initial={{ height: 0 }}
+                                    animate={{ height: `${height}px` }}
+                                    transition={{ delay: 0.3 + idx * 0.1, duration: 0.6 }}
+                                    className="flex-1 bg-gradient-to-t from-amber-500 to-amber-400 rounded-sm"
+                                  />
+                                </div>
+                                <span className="text-[9px] font-bold text-slate-600 w-6">{value}%</span>
                               </div>
-                              <span className="text-[9px] font-bold text-slate-600 w-6">{height}%</span>
-                            </div>
-                          );
-                        })}
-                      </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="h-[260px] flex flex-col items-center justify-center text-center border border-dashed border-white/10 rounded-2xl bg-white/[0.02] px-6">
+                          <BarChart3 size={28} className="text-slate-600 mb-3" />
+                          <p className="text-sm font-black text-white mb-1">No daily prep data yet</p>
+                          <p className="text-xs text-slate-500 max-w-sm">Answer a few practice questions and the dashboard will build a real trend line from your activity.</p>
+                        </div>
+                      )}
                     </motion.div>
 
                     {/* Skills Distribution Heatmap */}
@@ -212,39 +228,41 @@ const Dashboard = () => {
                       <div className="flex items-center justify-between mb-8">
                         <div>
                           <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white mb-1">Skills Proficiency</h3>
-                          <p className="text-[10px] font-bold text-slate-500">Across companies</p>
+                          <p className="text-[10px] font-bold text-slate-500">Derived from your matched companies</p>
                         </div>
                         <Flame size={20} className="text-amber-500" />
                       </div>
 
-                      <div className="space-y-3">
-                        {(analytics?.skillProficiency || [
-                          { name: 'Problem Solving', proficiency: 72 },
-                          { name: 'System Design', proficiency: 58 },
-                          { name: 'Communication', proficiency: 85 },
-                          { name: 'Leadership', proficiency: 42 },
-                          { name: 'Collaboration', proficiency: 90 }
-                        ]).map((skill, idx) => (
-                          <div key={idx}>
-                            <div className="flex justify-between items-center mb-2">
-                              <span className="text-[10px] font-bold text-slate-400">{skill.name}</span>
-                              <span className="text-[9px] font-black text-slate-500">{skill.proficiency}%</span>
+                      {skillProficiency.length > 0 ? (
+                        <div className="space-y-3">
+                          {skillProficiency.map((skill, idx) => (
+                            <div key={idx}>
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="text-[10px] font-bold text-slate-400">{skill.name}</span>
+                                <span className="text-[9px] font-black text-slate-500">{skill.proficiency}%</span>
+                              </div>
+                              <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                                <motion.div
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${skill.proficiency}%` }}
+                                  transition={{ delay: 0.4 + idx * 0.1, duration: 0.8 }}
+                                  className={`h-full bg-gradient-to-r ${
+                                    skill.proficiency >= 80 ? 'from-green-500 to-green-600' : 
+                                    skill.proficiency >= 60 ? 'from-amber-500 to-amber-600' : 
+                                    'from-red-500 to-red-600'
+                                  } rounded-full`}
+                                />
+                              </div>
                             </div>
-                            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                              <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: `${skill.proficiency}%` }}
-                                transition={{ delay: 0.4 + idx * 0.1, duration: 0.8 }}
-                                className={`h-full bg-gradient-to-r ${
-                                  skill.proficiency >= 80 ? 'from-green-500 to-green-600' : 
-                                  skill.proficiency >= 60 ? 'from-amber-500 to-amber-600' : 
-                                  'from-red-500 to-red-600'
-                                } rounded-full`}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="h-[220px] flex flex-col items-center justify-center text-center border border-dashed border-white/10 rounded-2xl bg-white/[0.02] px-6">
+                          <Flame size={28} className="text-slate-600 mb-3" />
+                          <p className="text-sm font-black text-white mb-1">No skill profile yet</p>
+                          <p className="text-xs text-slate-500 max-w-sm">Company matches will populate this chart with real proficiency signals once your resume analysis is available.</p>
+                        </div>
+                      )}
                     </motion.div>
                   </div>
 
@@ -387,30 +405,34 @@ const Dashboard = () => {
                 >
                   <div className="flex items-center gap-3 mb-6">
                     <Calendar size={18} className="text-amber-500" />
-                    <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">This Week's Goals</h3>
+                    <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">This Week&apos;s Goals</h3>
                   </div>
-                  <div className="space-y-4">
-                    {(analytics?.weeklyGoals || [
-                      { task: 'Complete 5 Mock Interviews', completed: 2, total: 5 },
-                      { task: 'Review System Design', completed: 1, total: 3 },
-                      { task: 'Practice Coding', completed: 4, total: 4 }
-                    ]).map((goal, idx) => (
-                      <div key={idx}>
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-[10px] font-bold text-slate-400">{goal.task}</span>
-                          <span className="text-[9px] font-black text-amber-500">{goal.completed}/{goal.total}</span>
+                  {weeklyGoals.length > 0 ? (
+                    <div className="space-y-4">
+                      {weeklyGoals.map((goal, idx) => (
+                        <div key={idx}>
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-[10px] font-bold text-slate-400">{goal.task}</span>
+                            <span className="text-[9px] font-black text-amber-500">{goal.completed}/{goal.total}</span>
+                          </div>
+                          <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${goal.total > 0 ? (goal.completed / goal.total) * 100 : 0}%` }}
+                              transition={{ delay: 0.2 + idx * 0.1, duration: 0.6 }}
+                              className="h-full bg-gradient-to-r from-amber-500 to-amber-400"
+                            />
+                          </div>
                         </div>
-                        <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${(goal.completed / goal.total) * 100}%` }}
-                            transition={{ delay: 0.2 + idx * 0.1, duration: 0.6 }}
-                            className="h-full bg-gradient-to-r from-amber-500 to-amber-400"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-center">
+                      <Calendar size={24} className="text-slate-600 mx-auto mb-3" />
+                      <p className="text-sm font-black text-white mb-1">No weekly goals found</p>
+                      <p className="text-xs text-slate-500">Add goals in Firestore to show your live weekly prep plan here.</p>
+                    </div>
+                  )}
                 </motion.div>
 
                 {/* Achievements */}
