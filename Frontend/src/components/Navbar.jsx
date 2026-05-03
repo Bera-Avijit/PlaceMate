@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { UserCircle, LogOut } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
@@ -8,6 +8,25 @@ import { useAuth } from "../context/AuthContext";
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, []);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-2xl border-b border-white/8 h-20 flex items-center shadow-xl">
@@ -27,7 +46,14 @@ const Navbar = () => {
               />
               <div className="absolute inset-0 rounded-lg bg-amber-500/0 group-hover:bg-amber-500/10 transition-colors" />
             </div>
-            <span className="text-lg font-black text-white tracking-tight">PlaceMate</span>
+            <div className="flex items-end gap-1">
+              <span className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-none tracking-tight">
+                Place
+              </span>
+              <span className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-amber-500 leading-none tracking-tight">
+                Mate
+              </span>
+            </div>
           </motion.div>
         </Link>
 
@@ -98,35 +124,50 @@ const Navbar = () => {
               <span className="hidden md:block text-xs font-bold text-amber-500 uppercase tracking-widest">
                 {user.displayName || user.email.split('@')[0]}
               </span>
-              <div className="relative group">
+              <div
+                ref={menuRef}
+                className="relative"
+                onMouseEnter={() => setOpen(true)}
+                onMouseLeave={() => setOpen(false)}
+              >
                 <motion.div
-                  whileHover={{ scale: 1.1 }}
+                  whileHover={{ scale: 1.05 }}
                   className="cursor-pointer"
+                  onClick={() => setOpen((v) => !v)}
                 >
-                  <UserCircle
-                    className="text-amber-500 hover:text-amber-300 transition-colors"
-                    size={32}
-                  />
+                  <UserCircle className="text-amber-500 hover:text-amber-300 transition-colors" size={32} />
                 </motion.div>
+
                 <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  whileHover={{ opacity: 1, y: 0 }}
-                  className="absolute top-full right-0 mt-3 w-52 bg-[#0f0f0f] border border-white/10 rounded-2xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all pointer-events-none group-hover:pointer-events-auto"
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={open ? { opacity: 1, y: 0 } : { opacity: 0, y: -6 }}
+                  transition={{ duration: 0.14 }}
+                  className="absolute top-full right-0 mt-3 w-52 bg-[#0f0f0f] border border-white/10 rounded-2xl shadow-2xl transform-origin-top-right"
+                  style={{ pointerEvents: open ? "auto" : "none" }}
                 >
                   <button
-                    onClick={() => navigate('/dashboard')}
+                    onClick={() => {
+                      setOpen(false);
+                      navigate('/dashboard');
+                    }}
                     className="w-full text-left px-4 py-3 text-xs font-semibold text-slate-300 hover:text-amber-400 hover:bg-white/5 transition-all rounded-t-2xl"
                   >
                     Dashboard
                   </button>
                   <button
-                    onClick={() => navigate('/pricing')}
+                    onClick={() => {
+                      setOpen(false);
+                      navigate('/pricing');
+                    }}
                     className="w-full text-left px-4 py-3 text-xs font-semibold text-slate-300 hover:text-amber-400 hover:bg-white/5 transition-all border-t border-white/5"
                   >
                     Pricing & Plans
                   </button>
                   <button
-                    onClick={logout}
+                    onClick={() => {
+                      setOpen(false);
+                      logout();
+                    }}
                     className="w-full text-left px-4 py-3 text-xs font-semibold text-red-500 hover:text-red-400 hover:bg-red-500/10 transition-all flex items-center justify-between border-t border-white/5 rounded-b-2xl"
                   >
                     Logout
