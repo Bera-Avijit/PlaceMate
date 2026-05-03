@@ -10,6 +10,7 @@ import ScrollToTop from './components/ScrollToTop';
 import Pricing from './pages/Pricing';
 import CompanyPlan from './pages/CompanyPlan';
 import PracticePlan from './pages/PracticePlan';
+import VoiceAssistant from './components/VoiceAssistant';
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
               } 
             />
           </Routes>
+          <VoiceAssistant />
         </div>
       </AuthProvider>
     </Router>

@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
-import { uploadResume, getUserResults } from '../services/resumeService';
+import { uploadResume, getUserResults } from '../services/resume';
 
 const Dashboard = () => {
   const navigate = useNavigate();
