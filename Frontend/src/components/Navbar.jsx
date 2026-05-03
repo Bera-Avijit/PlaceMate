@@ -1,24 +1,33 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { UserCircle, LogOut } from "lucide-react";
+import { UserCircle, LogOut, Zap } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { useAuth } from "../context/AuthContext";
+import DailyPrepSection from "./sections/DailyPrepSection";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [showDailyPrep, setShowDailyPrep] = useState(false);
   const menuRef = useRef(null);
+  const dailyPrepRef = useRef(null);
 
   useEffect(() => {
     const onDocClick = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
         setOpen(false);
       }
+      if (dailyPrepRef.current && !dailyPrepRef.current.contains(e.target)) {
+        setShowDailyPrep(false);
+      }
     };
     const onKey = (e) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        setShowDailyPrep(false);
+      }
     };
     document.addEventListener("mousedown", onDocClick);
     document.addEventListener("keydown", onKey);
@@ -116,11 +125,25 @@ const Navbar = () => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate('/resume-parsing')}
                 className="hidden sm:flex items-center gap-2 px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 font-semibold text-xs uppercase rounded-lg transition-all"
               >
                 📄 Resume
               </motion.button>
+              
+              <div ref={dailyPrepRef} className="relative">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowDailyPrep(!showDailyPrep)}
+                  className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-amber-300 font-semibold text-xs uppercase rounded-lg transition-all border border-amber-500/20"
+                >
+                  <Zap size={14} />
+                  Daily Prep
+                </motion.button>
+                {showDailyPrep && user && <DailyPrepSection user={user} />}
+              </div>
+
               <span className="hidden md:block text-xs font-bold text-amber-500 uppercase tracking-widest">
                 {user.displayName || user.email.split('@')[0]}
               </span>
