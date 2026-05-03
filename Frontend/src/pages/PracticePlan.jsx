@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
-import { generateQuestions, submitAnswer } from "../services/resumeService";
+import { generateQuestions, submitAnswer } from "../services/resume";
 
 const PracticePlan = () => {
   const { companyName, dayNumber } = useParams();

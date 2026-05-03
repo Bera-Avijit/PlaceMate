@@ -4,12 +4,14 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import ResumeParsing from './pages/ResumeParsing';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import ScrollToTop from './components/ScrollToTop';
 import Pricing from './pages/Pricing';
 import CompanyPlan from './pages/CompanyPlan';
 import PracticePlan from './pages/PracticePlan';
+import VoiceAssistant from './components/VoiceAssistant';
 
 function App() {
   return (
@@ -46,7 +48,16 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+            <Route 
+              path="/resume-parsing" 
+              element={
+                <ProtectedRoute>
+                  <ResumeParsing />
+                </ProtectedRoute>
+              } 
+            />
           </Routes>
+          <VoiceAssistant />
         </div>
       </AuthProvider>
     </Router>

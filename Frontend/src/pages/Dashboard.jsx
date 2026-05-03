@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Upload, 
-  FileText, 
-  CheckCircle, 
   TrendingUp, 
   Target, 
   LayoutDashboard, 
@@ -12,413 +9,367 @@ import {
   BookOpen,
   Settings,
   ArrowRight,
-  CloudUpload
+  FileText,
+  Zap,
+  Crown,
+  Award,
+  Flame,
+  BarChart3,
+  Calendar
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
-import { uploadResume, getUserResults } from '../services/resumeService';
+import { getUserResults, getDashboardAnalytics } from '../services/resumeService';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  // State for resume status
-  const [hasUploaded, setHasUploaded] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState(null);
   const [parsedData, setParsedData] = useState(null);
-  const [onboardingMode, setOnboardingMode] = useState('choice'); // choice, upload, basics
+  const [analytics, setAnalytics] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [isLoadingPersistent, setIsLoadingPersistent] = useState(true);
-
-  // Free Tier Logic
   const [unlockedCompany, setUnlockedCompany] = useState(localStorage.getItem('unlockedCompany') || null);
 
   const handleViewPlan = (companyName) => {
     if (!unlockedCompany) {
-      // Free tier: unlock first company
       localStorage.setItem('unlockedCompany', companyName);
       setUnlockedCompany(companyName);
       navigate(`/plan/${companyName}`);
     } else if (unlockedCompany === companyName) {
-      // Already unlocked
       navigate(`/plan/${companyName}`);
     } else {
-      // Attempting to view a second company on free tier
       navigate('/pricing');
     }
   };
 
-  // Check for existing data on mount
   useEffect(() => {
-    const checkExistingData = async () => {
+    const loadData = async () => {
       if (user?.uid) {
-        setIsLoadingPersistent(true);
-        const existingData = await getUserResults(user.uid);
-        if (existingData) {
-          setHasUploaded(true);
-          setParsedData(existingData);
+        setLoading(true);
+        try {
+          const data = await getUserResults(user.uid);
+          if (data) {
+            setParsedData(data);
+            // Fetch analytics after getting company data
+            const analyticsData = await getDashboardAnalytics(user.uid, data.companies || []);
+            setAnalytics(analyticsData);
+          }
+        } catch (error) {
+          console.error("Error loading dashboard data:", error);
+        } finally {
+          setLoading(false);
         }
-        setIsLoadingPersistent(false);
       }
     };
-    checkExistingData();
+    loadData();
   }, [user]);
-
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    setError(null);
-
-    try {
-      const result = await uploadResume(file, user.uid, user.email);
-      
-      if (result.success) {
-        setHasUploaded(true);
-        setParsedData(result.data);
-        console.log('✅ AI Parser: Resume Received', result.data);
-      } else {
-        setError("Network error. Please ensure n8n is active.");
-        console.error('❌ AI Parser Error:', result.error);
-      }
-    } catch (err) {
-      setError("Failed to reach intelligence node.");
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-amber-500/30">
       <Navbar />
       
       <main className="max-w-7xl mx-auto px-8 pt-32 pb-12">
-        {/* Header Section */}
-        <header className="mb-12 flex justify-between items-end">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <h1 className="text-4xl font-black tracking-tight mb-2 uppercase italic">
-              Dashboard<span className="text-amber-500">.</span>
-            </h1>
-            <p className="text-slate-500 font-bold uppercase tracking-[0.3em] text-[10px]">
-              Welcome back, {user?.displayName?.split(' ')[0] || 'Member'}
-            </p>
-          </motion.div>
+        {/* Profile Header Card */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-12 bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-amber-500/30 rounded-3xl p-8"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-2xl font-black">
+                {user?.displayName?.charAt(0) || 'U'}
+              </div>
+              <div>
+                <h1 className="text-3xl font-black uppercase italic mb-1">
+                  {user?.displayName || 'User'}
+                </h1>
+                <p className="text-amber-500 font-bold uppercase tracking-[0.2em] text-[10px]">
+                  {user?.email}
+                </p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="hidden lg:flex items-center gap-3 px-6 py-3 bg-black border border-amber-500/30 rounded-2xl hover:border-amber-500/60 transition-all group"
+            >
+              <span className="text-[10px] font-black uppercase tracking-widest text-amber-500 group-hover:text-amber-400">
+                {sidebarOpen ? 'Focus' : 'Expand'}
+              </span>
+              <LayoutDashboard size={16} className="text-amber-500" />
+            </button>
+          </div>
+        </motion.div>
 
-          <button 
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="hidden lg:flex items-center gap-3 px-6 py-3 bg-[#0a0a0a] border border-white/5 rounded-2xl hover:border-amber-500/30 transition-all group"
-          >
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-white">
-              {sidebarOpen ? 'Focus Mode' : 'Show Console'}
-            </span>
-            <LayoutDashboard size={16} className={sidebarOpen ? 'text-slate-500' : 'text-amber-500'} />
-          </button>
-        </header>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          {/* Main Content Area */}
           <div className={`${sidebarOpen ? 'lg:col-span-8' : 'lg:col-span-12'} space-y-8 transition-all duration-500`}>
             
-            {isLoadingPersistent ? (
-               <div className="bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] p-20 flex flex-col items-center justify-center">
-                  <div className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-6" />
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Checking Persistence...</p>
-               </div>
+            {loading ? (
+              <div className="bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] p-20 flex flex-col items-center justify-center">
+                <div className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-6" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Loading Analytics...</p>
+              </div>
             ) : (
-            <>
-            <AnimatePresence mode="wait">
-              {!hasUploaded && onboardingMode === 'choice' && (
+              <>
+              {!parsedData ? (
                 <motion.div
-                  key="choice"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 1.1 }}
-                  className="grid grid-cols-1 md:grid-cols-2 gap-6"
-                >
-                  <div 
-                    onClick={() => setOnboardingMode('upload')}
-                    className="bg-[#0a0a0a] border border-amber-500/20 rounded-[2.5rem] p-10 cursor-pointer hover:border-amber-500/50 transition-all group relative overflow-hidden"
-                  >
-                    <div className="absolute -right-8 -bottom-8 opacity-[0.03] group-hover:opacity-[0.1] transition-opacity">
-                       <FileText size={160} />
-                    </div>
-                    <div className="w-16 h-16 bg-amber-500/10 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                      <Upload className="text-amber-500" size={28} />
-                    </div>
-                    <h3 className="text-xl font-black mb-2 uppercase italic">I have a Resume</h3>
-                    <p className="text-slate-500 text-xs font-medium leading-relaxed">Let AI parse your history and find your perfect career match instantly.</p>
-                  </div>
-
-                  <div 
-                    onClick={() => setOnboardingMode('basics')}
-                    className="bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] p-10 cursor-pointer hover:border-amber-500/50 transition-all group relative overflow-hidden"
-                  >
-                    <div className="absolute -right-8 -bottom-8 opacity-[0.03] group-hover:opacity-[0.1] transition-opacity">
-                       <BookOpen size={160} />
-                    </div>
-                    <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                      <TrendingUp className="text-amber-500" size={28} />
-                    </div>
-                    <h3 className="text-xl font-black mb-2 uppercase italic">Start from Basics</h3>
-                    <p className="text-slate-500 text-xs font-medium leading-relaxed">Early in your journey? Start your preparation roadmap from scratch.</p>
-                  </div>
-                </motion.div>
-              )}
-
-              {!hasUploaded && onboardingMode === 'upload' && (
-                <motion.div
-                  key="upload"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="bg-[#0a0a0a] border border-amber-500/20 rounded-[2.5rem] p-12 relative overflow-hidden group shadow-2xl shadow-amber-500/5"
+                  className="bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-amber-500/30 rounded-2xl p-8"
                 >
-                  <button 
-                    onClick={() => setOnboardingMode('choice')}
-                    className="absolute top-8 left-8 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white"
-                  >
-                    ← Back
-                  </button>
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 blur-[80px] -mr-32 -mt-32 rounded-full group-hover:bg-amber-500/10 transition-colors" />
-                  
-                  <div className="relative z-10 flex flex-col items-center text-center">
-                    <div className="w-20 h-20 bg-amber-500/10 rounded-3xl flex items-center justify-center mb-8 border border-white/5 shadow-inner">
-                      <CloudUpload className="text-amber-500" size={32} />
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="p-3 bg-amber-500/20 rounded-xl">
+                      <Zap className="text-amber-500" size={24} />
                     </div>
-                    <h2 className="text-2xl font-black mb-4 uppercase tracking-wider">Initialize AI Analysis</h2>
-                    <p className="text-slate-500 text-sm max-w-md mb-10 leading-relaxed font-medium">
-                      Your career journey starts here. Upload your resume to allow our AI to parse your skills, match you with top companies, and build your personalized roadmap.
-                    </p>
-                    
-                    <label className="cursor-pointer group">
-                      <input type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={handleFileUpload} disabled={isUploading} />
-                      <div className="px-12 py-5 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest text-xs rounded-full transition-all flex items-center gap-3 active:scale-95 shadow-xl shadow-amber-500/20">
-                        {isUploading ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                            Processing Resume...
-                          </>
-                        ) : (
-                          <>
-                            Upload Your PDF
-                            <ArrowRight size={16} />
-                          </>
-                        )}
-                      </div>
-                    </label>
-                    <p className="mt-6 text-[10px] text-slate-600 font-bold uppercase tracking-widest">Supports PDF, DOCX (Max 10MB)</p>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-black uppercase">Get Started with Resume Analysis</h3>
+                      <p className="text-slate-400 text-xs font-medium mt-1">Upload your resume to unlock personalized prep plans for your target companies</p>
+                    </div>
+                    <button
+                      onClick={() => navigate('/resume-parsing')}
+                      className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest text-xs rounded-lg transition-all flex items-center gap-2 whitespace-nowrap"
+                    >
+                      Upload Resume
+                      <ArrowRight size={14} />
+                    </button>
                   </div>
                 </motion.div>
-              )}
-
-              {!hasUploaded && onboardingMode === 'basics' && (
-                <motion.div
-                  key="basics"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] p-12"
-                >
-                  <button 
-                    onClick={() => setOnboardingMode('choice')}
-                    className="mb-8 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white"
-                  >
-                    ← Back
-                  </button>
-                  <h2 className="text-2xl font-black mb-4 uppercase italic">Choose Your Target Company</h2>
-                  <p className="text-slate-500 text-sm mb-10 font-bold uppercase tracking-widest">Select a company to start your foundational prep roadmap</p>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {['Google', 'Microsoft', 'Amazon', 'Meta', 'Firebase', 'MongoDB', 'Netflix', 'Tesla'].map((company) => (
-                      <button 
-                        key={company}
-                        className="p-4 bg-white/5 border border-white/5 rounded-2xl hover:border-amber-500/50 text-[10px] font-black uppercase tracking-widest transition-all"
+              ) : (
+                <>
+                  {/* Key Metrics Row */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {[
+                      { label: 'Job Readiness', value: `${analytics?.jobReadiness || 42}%`, icon: Briefcase, color: 'from-amber-500 to-amber-600', change: `+${analytics?.skillGrowth || 8}%` },
+                      { label: 'Skill Growth', value: `+${analytics?.skillGrowth || 12}%`, icon: TrendingUp, color: 'from-green-500 to-green-600', change: 'This month' },
+                      { label: 'Companies', value: `${parsedData.companies?.length || 0}`, icon: Target, color: 'from-blue-500 to-blue-600', change: 'Matched' },
+                      { label: 'Quiz Progress', value: `${analytics?.quizProgress?.completed || 0}/${analytics?.quizProgress?.total || 15}`, icon: BookOpen, color: 'from-purple-500 to-purple-600', change: 'Started' },
+                    ].map((metric, idx) => (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                        className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all"
                       >
-                        {company}
-                      </button>
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">{metric.label}</span>
+                          <div className={`p-2 rounded-lg bg-gradient-to-br ${metric.color} shadow-lg`}>
+                            <metric.icon size={16} className="text-white" />
+                          </div>
+                        </div>
+                        <div className="text-2xl font-black mb-2">{metric.value}</div>
+                        <p className="text-[9px] text-slate-500 font-bold">{metric.change}</p>
+                      </motion.div>
                     ))}
                   </div>
-                </motion.div>
-              )}
 
-              {hasUploaded && (
-                <motion.div
-                  key="progress"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="grid grid-cols-1 md:grid-cols-2 gap-6"
-                >
-                  {/* AI Analysis Result */}
-                  <div className="bg-[#0a0a0a] border border-white/5 rounded-[2rem] p-8 hover:border-amber-500/20 transition-all group">
-                    <div className="flex justify-between items-start mb-6">
-                      <div className="p-3 bg-green-500/10 rounded-2xl border border-green-500/20">
-                        <CheckCircle className="text-green-500" size={24} />
+                  {/* Progress Chart & Skills Heatmap */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Improvement Graph */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-8"
+                    >
+                      <div className="flex items-center justify-between mb-8">
+                        <div>
+                          <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white mb-1">Progress Trend</h3>
+                          <p className="text-[10px] font-bold text-slate-500">Last 7 days</p>
+                        </div>
+                        <BarChart3 size={20} className="text-amber-500" />
                       </div>
-                      <span className="text-[10px] font-black text-slate-500 bg-white/5 px-3 py-1 rounded-full uppercase tracking-widest">Analysis Complete</span>
-                    </div>
-                    <h3 className="text-lg font-black mb-2 uppercase tracking-wide">Resume Intelligence</h3>
-                    <p className="text-slate-500 text-xs leading-relaxed font-medium mb-6">Level Detected: <span className="text-amber-500 font-black uppercase italic">{parsedData?.level || 'N/A'}</span></p>
-                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                      <motion.div initial={{ width: 0 }} animate={{ width: '100%' }} className="h-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]" />
-                    </div>
-                  </div>
-
-                  {/* Target Match */}
-                  <div className="bg-[#0a0a0a] border border-white/5 rounded-[2rem] p-8 hover:border-amber-500/20 transition-all group">
-                    <div className="flex justify-between items-start mb-6">
-                      <div className="p-3 bg-amber-500/10 rounded-2xl border border-amber-500/20">
-                        <Target className="text-amber-500" size={24} />
-                      </div>
-                      <span className="text-[10px] font-black text-amber-500 bg-amber-500/5 px-3 py-1 rounded-full uppercase tracking-widest">{parsedData?.companies?.length || 0} Matches Found</span>
-                    </div>
-                    <h3 className="text-lg font-black mb-2 uppercase tracking-wide">Company Pipeline</h3>
-                    <p className="text-slate-500 text-xs leading-relaxed font-medium mb-6">Your profile is a high match for Tier 1 tech startups and product companies.</p>
-                    <div className="flex -space-x-3">
-                       {parsedData?.companies?.slice(0, 5).map((c, i) => (
-                         <div key={i} className="w-8 h-8 rounded-full border-2 border-black bg-amber-500 flex items-center justify-center text-[8px] font-black text-black uppercase">
-                           {c.name.substring(0, 2)}
-                         </div>
-                       ))}
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            
-            {/* AI Analysis Confirmation & Results */}
-            <AnimatePresence>
-              {parsedData && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-12"
-                >
-                  {/* Detailed Company Matching Section */}
-                  <div className="space-y-8">
-                    <div className="flex items-center justify-between px-2">
-                       <h3 className="text-sm font-black uppercase tracking-[0.3em] text-slate-500">Career Trajectory Matches</h3>
-                       <span className="text-[10px] font-black text-amber-500 bg-amber-500/5 px-3 py-1 rounded-full uppercase tracking-[0.2em] border border-amber-500/20">Deep AI Benchmarking</span>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 gap-8">
-                      {parsedData.companies.map((company, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: i * 0.1 }}
-                          className="bg-[#0a0a0a] border border-white/5 rounded-[3rem] p-10 hover:bg-white/[0.01] transition-all group relative overflow-hidden"
-                        >
-                          {/* Match Score Indicator (Relative positioning to prevent overlap) */}
-                          <div className="flex flex-col md:flex-row gap-10 items-start">
-                            {/* Left: Company Identity & Score */}
-                            <div className="w-full md:w-64 shrink-0">
-                              <div className="flex justify-between items-start mb-8">
-                                <div className="flex items-center gap-4">
-                                  <div className="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center border border-amber-500/20">
-                                    <Target className="text-amber-500" size={24} />
-                                  </div>
-                                  <div>
-                                    <h4 className="text-2xl font-black uppercase italic tracking-tight">{company.name}</h4>
-                                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">{company.location}</p>
-                                  </div>
-                                </div>
-                                
-                                {/* Score Circle */}
-                                <div className="relative w-16 h-16 flex items-center justify-center">
-                                   <svg className="w-16 h-16 transform -rotate-90">
-                                      <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="3" fill="transparent" className="text-white/5" />
-                                      <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="3" fill="transparent" strokeDasharray={176} strokeDashoffset={176 - (176 * company.matchScore) / 100} className="text-amber-500" />
-                                   </svg>
-                                   <span className="absolute text-[10px] font-black italic">{company.matchScore}%</span>
-                                </div>
+                      
+                      <div className="space-y-4">
+                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, idx) => {
+                          const height = analytics?.progressTrend?.[idx] || [35, 45, 38, 52, 48, 62, 75][idx];
+                          return (
+                            <div key={idx} className="flex items-end gap-3">
+                              <span className="text-[9px] font-bold text-slate-600 w-8">{day}</span>
+                              <div className="flex-1 flex items-end gap-1">
+                                <motion.div
+                                  initial={{ height: 0 }}
+                                  animate={{ height: `${height}px` }}
+                                  transition={{ delay: 0.3 + idx * 0.1, duration: 0.6 }}
+                                  className="flex-1 bg-gradient-to-t from-amber-500 to-amber-400 rounded-sm"
+                                />
                               </div>
-
-                              <div className={`inline-block px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest mb-6 ${company.applyReadiness === 'ready' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'}`}>
-                                {company.applyReadiness.replace('_', ' ')} • {company.type}
-                              </div>
-                              
-                              <p className="text-slate-400 text-xs leading-relaxed font-medium mb-8 italic">"{company.matchReason}"</p>
-                              
-                              <div className="flex items-center gap-4">
-                                <button 
-                                  onClick={() => handleViewPlan(company.name)}
-                                  className="px-6 py-3 bg-amber-500 text-black font-black uppercase tracking-widest text-[9px] rounded-xl hover:bg-amber-400 transition-all active:scale-95 flex items-center gap-2"
-                                >
-                                  {unlockedCompany === company.name ? 'View Prep Plan' : (unlockedCompany ? 'Unlock Plan 🔒' : 'Unlock Free Plan')}
-                                  <ArrowRight size={14} />
-                                </button>
-                                <a href={company.careersUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-white transition-all">
-                                  Careers
-                                </a>
-                              </div>
+                              <span className="text-[9px] font-bold text-slate-600 w-6">{height}%</span>
                             </div>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
 
-                            {/* Right: Technical Deep Dive */}
-                            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8 w-full border-t md:border-t-0 md:border-l border-white/5 pt-10 md:pt-0 md:pl-10">
-                              <div>
-                                <h5 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Skill Overlap</h5>
-                                <div className="flex flex-wrap gap-2">
-                                  {company.skillOverlap.map((skill, si) => (
-                                    <span key={si} className="px-3 py-1 bg-white/5 border border-white/5 rounded-lg text-[9px] font-black uppercase text-slate-300">
-                                      {skill}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                              <div>
-                                <h5 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Interview Focus</h5>
-                                <div className="space-y-2">
-                                  {company.interviewFocus.map((focus, fi) => (
-                                    <div key={fi} className="flex items-center gap-2 text-[10px] font-bold text-slate-400">
-                                      <div className="w-1 h-1 rounded-full bg-amber-500" />
-                                      {focus}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                              {company.weakAreaWarning !== "None" && (
-                                <div className="md:col-span-2 p-4 bg-red-500/5 border border-red-500/10 rounded-2xl">
-                                   <p className="text-[9px] font-black text-red-400 uppercase tracking-widest leading-relaxed">⚠️ Warning: {company.weakAreaWarning}</p>
-                                </div>
-                              )}
+                    {/* Skills Distribution Heatmap */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                      className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-8"
+                    >
+                      <div className="flex items-center justify-between mb-8">
+                        <div>
+                          <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white mb-1">Skills Proficiency</h3>
+                          <p className="text-[10px] font-bold text-slate-500">Across companies</p>
+                        </div>
+                        <Flame size={20} className="text-amber-500" />
+                      </div>
+
+                      <div className="space-y-3">
+                        {(analytics?.skillProficiency || [
+                          { name: 'Problem Solving', proficiency: 72 },
+                          { name: 'System Design', proficiency: 58 },
+                          { name: 'Communication', proficiency: 85 },
+                          { name: 'Leadership', proficiency: 42 },
+                          { name: 'Collaboration', proficiency: 90 }
+                        ]).map((skill, idx) => (
+                          <div key={idx}>
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-[10px] font-bold text-slate-400">{skill.name}</span>
+                              <span className="text-[9px] font-black text-slate-500">{skill.proficiency}%</span>
+                            </div>
+                            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${skill.proficiency}%` }}
+                                transition={{ delay: 0.4 + idx * 0.1, duration: 0.8 }}
+                                className={`h-full bg-gradient-to-r ${
+                                  skill.proficiency >= 80 ? 'from-green-500 to-green-600' : 
+                                  skill.proficiency >= 60 ? 'from-amber-500 to-amber-600' : 
+                                  'from-red-500 to-red-600'
+                                } rounded-full`}
+                              />
                             </div>
                           </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  </div>
+
+                  {/* Company Match Heatmap */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-8"
+                  >
+                    <div className="flex items-center justify-between mb-8">
+                      <div>
+                        <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white mb-1">Company Match Heatmap</h3>
+                        <p className="text-[10px] font-bold text-slate-500">{parsedData.companies?.length || 0} companies analyzed</p>
+                      </div>
+                      <Target size={20} className="text-amber-500" />
+                    </div>
+
+                    <div className="space-y-6">
+                      {parsedData.companies?.slice(0, 6).map((company, idx) => (
+                        <div key={idx}>
+                          <div className="flex justify-between items-center mb-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-xs font-black text-white">
+                                {company.name.charAt(0)}
+                              </div>
+                              <div>
+                                <p className="text-sm font-black uppercase">{company.name}</p>
+                                <p className="text-[9px] text-slate-500 font-bold">{company.location}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-lg font-black text-amber-500">{company.matchScore}%</p>
+                              <p className="text-[9px] text-slate-500 font-bold">Match Score</p>
+                            </div>
+                          </div>
+                          
+                          <div className="h-3 bg-white/5 rounded-full overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${Math.min(100, company.matchScore)}%` }}
+                              transition={{ delay: 0.5 + idx * 0.1, duration: 0.8 }}
+                              className={`h-full rounded-full ${
+                                company.matchScore >= 80 ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                                company.matchScore >= 60 ? 'bg-gradient-to-r from-amber-500 to-amber-600' :
+                                'bg-gradient-to-r from-orange-500 to-orange-600'
+                              }`}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {parsedData.companies?.length > 6 && (
+                      <button 
+                        onClick={() => navigate('/resume-parsing')}
+                        className="w-full mt-8 py-3 border border-amber-500/30 hover:border-amber-500/60 hover:bg-amber-500/10 text-amber-500 font-bold uppercase tracking-widest text-[10px] rounded-lg transition-all flex items-center justify-center gap-2"
+                      >
+                        View All {parsedData.companies.length} Companies
+                        <ArrowRight size={12} />
+                      </button>
+                    )}
+                  </motion.div>
+
+                  {/* Prep Plans Grid */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="space-y-8 mt-8 pt-8 border-t border-white/5"
+                  >
+                    <div className="flex items-center justify-between px-2">
+                      <h3 className="text-sm font-black uppercase tracking-[0.3em] text-slate-500">Your Prep Plans</h3>
+                      <span className="text-[10px] font-black text-amber-500 bg-amber-500/5 px-3 py-1 rounded-full uppercase tracking-[0.2em] border border-amber-500/20">{parsedData.companies?.length || 0} Active</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {parsedData.companies?.map((company, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.6 + i * 0.1 }}
+                          className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-6 hover:border-amber-500/30 transition-all group"
+                        >
+                          <div className="flex items-start justify-between mb-4">
+                            <div>
+                              <h4 className="text-lg font-black uppercase italic">{company.name}</h4>
+                              <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">{company.location}</p>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-2xl font-black text-amber-500">{company.matchScore}%</div>
+                              <p className="text-[9px] text-slate-600 font-bold">Match</p>
+                            </div>
+                          </div>
+                          
+                          <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden mb-4">
+                            <motion.div 
+                              initial={{ width: 0 }}
+                              animate={{ width: `${Math.min(100, company.matchScore)}%` }}
+                              transition={{ delay: 0.6 + i * 0.1 + 0.3, duration: 0.8 }}
+                              className="h-full bg-amber-500"
+                            />
+                          </div>
+                          
+                          <p className="text-slate-400 text-xs mb-4 leading-relaxed">{company.matchReason}</p>
+                          
+                          <button 
+                            onClick={() => handleViewPlan(company.name)}
+                            className="w-full py-2 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest text-[9px] rounded-lg transition-all flex items-center justify-center gap-2 active:scale-95"
+                          >
+                            {unlockedCompany === company.name ? 'View Plan' : (unlockedCompany ? 'Upgrade' : 'Start Free')}
+                            <ArrowRight size={12} />
+                          </button>
                         </motion.div>
                       ))}
                     </div>
-                  </div>
-                </motion.div>
+                  </motion.div>
+                </>
               )}
-            </AnimatePresence>
-
-            {/* Growth Journey Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[
-                { icon: Briefcase, label: 'Job Readiness', value: '42%', color: 'text-amber-500' },
-                { icon: TrendingUp, label: 'Skill Growth', value: '+12%', color: 'text-green-500' },
-                { icon: BookOpen, label: 'Quiz Progress', value: '0/15', color: 'text-blue-500' },
-              ].map((stat, idx) => (
-                <div key={idx} className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-6 hover:bg-white/[0.02] transition-colors">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="p-2 bg-white/5 rounded-xl">
-                      <stat.icon className={stat.color} size={18} />
-                    </div>
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{stat.label}</span>
-                  </div>
-                  <div className="text-2xl font-black">{stat.value}</div>
-                </div>
-              ))}
-            </div>
-            </>
+              </>
             )}
           </div>
 
-          {/* Sidebar / Quick Actions */}
+          {/* Sidebar / Advanced Analytics */}
           <AnimatePresence>
             {sidebarOpen && (
               <motion.div 
@@ -427,29 +378,111 @@ const Dashboard = () => {
                 exit={{ opacity: 0, x: 20 }}
                 className="lg:col-span-4 space-y-8"
               >
-                <div className="bg-[#0a0a0a] border border-white/5 rounded-[2rem] p-8">
-                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-500 mb-8 ml-1">Quick Console</h3>
-                  <nav className="space-y-4">
-                    {[
-                      { icon: LayoutDashboard, label: 'Overview', active: true },
-                      { icon: FileText, label: 'My Resume' },
-                      { icon: Target, label: 'Challenges' },
-                      { icon: Settings, label: 'Preferences' }
-                    ].map((item, idx) => (
-                      <div key={idx} className={`flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all ${item.active ? 'bg-amber-500 text-black font-extrabold shadow-lg shadow-amber-500/10' : 'hover:bg-white/5 text-slate-500 hover:text-white font-bold text-sm uppercase italic'}`}>
-                        <item.icon size={18} />
-                        <span className="text-xs uppercase tracking-widest">{item.label}</span>
+                {/* Weekly Goals */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-8"
+                >
+                  <div className="flex items-center gap-3 mb-6">
+                    <Calendar size={18} className="text-amber-500" />
+                    <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">This Week's Goals</h3>
+                  </div>
+                  <div className="space-y-4">
+                    {(analytics?.weeklyGoals || [
+                      { task: 'Complete 5 Mock Interviews', completed: 2, total: 5 },
+                      { task: 'Review System Design', completed: 1, total: 3 },
+                      { task: 'Practice Coding', completed: 4, total: 4 }
+                    ]).map((goal, idx) => (
+                      <div key={idx}>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-[10px] font-bold text-slate-400">{goal.task}</span>
+                          <span className="text-[9px] font-black text-amber-500">{goal.completed}/{goal.total}</span>
+                        </div>
+                        <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${(goal.completed / goal.total) * 100}%` }}
+                            transition={{ delay: 0.2 + idx * 0.1, duration: 0.6 }}
+                            className="h-full bg-gradient-to-r from-amber-500 to-amber-400"
+                          />
+                        </div>
                       </div>
                     ))}
-                  </nav>
-                </div>
+                  </div>
+                </motion.div>
 
-                <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-[2.5rem] p-8 text-black relative overflow-hidden">
+                {/* Achievements */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-8"
+                >
+                  <div className="flex items-center gap-3 mb-6">
+                    <Award size={18} className="text-amber-500" />
+                    <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">Achievements</h3>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { icon: '🔥', label: `${analytics?.achievements?.streakDays || 0}-Day Streak`, unlocked: (analytics?.achievements?.streakDays || 0) > 0 },
+                      { icon: '⭐', label: 'Expert Mode', unlocked: analytics?.achievements?.expertModeUnlocked || false },
+                      { icon: '🎯', label: `${analytics?.achievements?.perfectMatches || 0} Perfect Matches`, unlocked: (analytics?.achievements?.perfectMatches || 0) > 0 }
+                    ].map((achievement, idx) => (
+                      <div 
+                        key={idx}
+                        className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all ${achievement.unlocked ? 'bg-amber-500/10 border border-amber-500/30' : 'bg-white/5 border border-white/10 opacity-50'}`}
+                      >
+                        <span className="text-2xl mb-1">{achievement.icon}</span>
+                        <p className="text-[8px] font-bold uppercase text-slate-400">{achievement.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+
+                {/* Quick Navigation */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-8"
+                >
+                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white mb-6">Quick Links</h3>
+                  <nav className="space-y-3">
+                    {[
+                      { icon: FileText, label: 'Resume Analysis', action: () => navigate('/resume-parsing'), active: false },
+                      { icon: Target, label: 'Interview Prep', action: () => {}, active: false },
+                      { icon: BarChart3, label: 'Analytics', action: () => {}, active: true },
+                      { icon: Settings, label: 'Preferences', action: () => {}, active: false }
+                    ].map((item, idx) => (
+                      <button
+                        key={idx}
+                        onClick={item.action}
+                        className={`w-full flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all text-left font-bold ${item.active ? 'bg-amber-500/20 border border-amber-500/40 text-amber-400' : 'hover:bg-white/5 border border-white/5 text-slate-400 hover:text-white'}`}
+                      >
+                        <item.icon size={16} />
+                        <span className="text-[11px] uppercase">{item.label}</span>
+                      </button>
+                    ))}
+                  </nav>
+                </motion.div>
+
+                {/* Premium CTA */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-3xl p-8 text-black relative overflow-hidden"
+                >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 blur-[60px] -mr-16 -mt-16 rounded-full" />
-                  <h3 className="font-black text-xl mb-4 italic leading-tight">PREMIUM <br/> PLACEMENT <br/> TRACKING</h3>
-                  <p className="text-[11px] font-bold uppercase tracking-wider mb-6 opacity-80 leading-relaxed">Unlock advanced AI mock interviews and direct HR referrals.</p>
-                  <button className="w-full py-4 bg-black text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-[1.02] transition-all active:scale-[0.98]">Coming Soon</button>
-                </div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Crown size={18} />
+                    <h3 className="font-black text-sm uppercase">Premium</h3>
+                  </div>
+                  <p className="text-[11px] font-bold mb-6 leading-relaxed">Unlock AI mock interviews, direct HR referrals & advanced analytics.</p>
+                  <button className="w-full py-3 bg-black text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-[1.02] transition-all active:scale-[0.98]">Upgrade Now</button>
+                </motion.div>
               </motion.div>
             )}
           </AnimatePresence>

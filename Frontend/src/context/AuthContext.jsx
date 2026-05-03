@@ -65,9 +65,11 @@ export const AuthProvider = ({ children }) => {
     const provider = new GoogleAuthProvider();
     try {
       const userCredential = await signInWithPopup(auth, provider);
+      console.log("Google Sign-in successful:", userCredential.user);
       await syncUserToSheet(userCredential.user, "google");
       return userCredential;
     } catch (error) {
+      console.error("Google Sign-in error:", error);
       if (
         error?.code === "auth/popup-blocked" ||
         error?.code === "auth/popup-closed-by-user" ||

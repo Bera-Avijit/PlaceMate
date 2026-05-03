@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Clock, Calendar, CheckCircle2, AlertTriangle, BookOpen, Link as LinkIcon, ArrowLeft, Lock, Unlock } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
-import { generateCompanyPlan, getUserResults, getUserProgress } from '../services/resumeService';
+import { generateCompanyPlan, getUserResults, getUserProgress } from '../services/resume';
 
 const CompanyPlan = () => {
   const { companyName } = useParams();
@@ -17,6 +17,8 @@ const CompanyPlan = () => {
   const [progress, setProgress] = useState({});
 
   useEffect(() => {
+
+    console.log
     const fetchPlanAndProgress = async () => {
       if (!user) return;
       
