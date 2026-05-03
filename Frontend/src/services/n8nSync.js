@@ -6,8 +6,6 @@
 const VITE_N8N_AUTH_TARGET = import.meta.env.VITE_N8N_AUTH_TARGET;
 
 export const syncUserToSheet = async (user, authMethod = "email") => {
-  if (!VITE_N8N_AUTH_TARGET) return;
-
   const payload = {
     uid: user.uid,
     email: user.email,
@@ -17,24 +15,31 @@ export const syncUserToSheet = async (user, authMethod = "email") => {
   };
 
   console.log('🚀 n8n Sync: Internal Trigger Fired', payload) ;
+
+  if (!VITE_N8N_AUTH_TARGET) {
+    console.warn('n8n Sync skipped: VITE_N8N_AUTH_TARGET is not set');
+    return;
+  }
   
 
   try {
     // Production Standard: Sending clean JSON with CORS support.
     // URL is now securely pulled from the .env file (abrar1 account)
-    fetch(VITE_N8N_AUTH_TARGET, {
+    const response = await fetch(VITE_N8N_AUTH_TARGET, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
-    }).then(res => {
-      if (!res.ok) console.warn('n8n Sync: Webhook error', res.status);
-      else console.log('✅ n8n Sync: Successfully updated Google Sheet');
-    }).catch(err => {
-      console.error('❌ n8n Sync: Network/CORS Error', err);
     });
+
+    if (!response.ok) {
+      throw new Error(`n8n Sync: Webhook error ${response.status}`);
+    }
+
+    console.log('✅ n8n Sync: Successfully updated Google Sheet');
   } catch (error) {
     console.error('n8n Sync Error:', error);
+    throw error;
   }
 };

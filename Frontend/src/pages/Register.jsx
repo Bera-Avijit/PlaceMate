@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, ArrowRight, ArrowLeft } from 'lucide-react';
@@ -40,14 +40,8 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { user, signup, loginWithGoogle } = useAuth();
+  const { signup, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (user) {
-      window.location.replace('/');
-    }
-  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

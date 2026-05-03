@@ -37,6 +37,7 @@ const Dashboard = () => {
     if (!unlockedCompany) {
       // Free tier: unlock first company
       localStorage.setItem('unlockedCompany', companyName);
+
       setUnlockedCompany(companyName);
       navigate(`/plan/${companyName}`);
     } else if (unlockedCompany === companyName) {
@@ -50,6 +51,7 @@ const Dashboard = () => {
 
   // Check for existing data on mount
   useEffect(() => {
+
     const checkExistingData = async () => {
       if (user?.uid) {
         setIsLoadingPersistent(true);

@@ -17,6 +17,8 @@ const CompanyPlan = () => {
   const [progress, setProgress] = useState({});
 
   useEffect(() => {
+
+    console.log
     const fetchPlanAndProgress = async () => {
       if (!user) return;
       

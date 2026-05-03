@@ -17,6 +17,8 @@ const VITE_N8N_RESUME_TARGET = import.meta.env.VITE_N8N_RESUME_TARGET;
 const VITE_N8N_COMPANY_PLAN_TARGET = import.meta.env
   .VITE_N8N_COMPANY_PLAN_TARGET;
 
+  const VITE_N8N_QUESTION_TARGET = import.meta.env.VITE_N8N_QUESTION_TARGET;
+const VITE_N8N_ANSWER_TARGET = import.meta.env.VITE_N8N_ANSWER_TARGET;
 export const uploadResume = async (file, userId, email) => {
   if (!file) return { success: false, error: "No file provided" };
 
@@ -80,6 +82,7 @@ export const uploadResume = async (file, userId, email) => {
 
 export const getUserResults = async (userId) => {
   try {
+ 
     const docRef = doc(db, "placemate-user-company-recomendation", userId);
     const docSnap = await getDoc(docRef);
 
@@ -90,7 +93,7 @@ export const getUserResults = async (userId) => {
     // Transform Firestore data back to the UI structure
     const parseFields = (d) => ({
       level: d.level || "unknown",
-      username: d.username || "user",
+      username: userId || "user",
       companies:
         d.company?.map((c) => ({
           name: c.name || "Unknown Company",
@@ -134,10 +137,11 @@ export const saveUserResults = async (userId, data) => {
         interview_focus: c.interviewFocus || c.interview_focus || [],
         weak_area_warning: c.weakAreaWarning || c.weak_area_warning || "",
       })),
+     
       hasParsed: true,
       lastUpdated: new Date().toISOString(),
     };
-
+ console.log("Saving to Firestore with structure:", firestoreData);
     const docRef = doc(db, "placemate-user-company-recomendation", userId);
     await setDoc(docRef, firestoreData);
     console.log("✅ Resume analysis saved to Firestore for persistent access.");
@@ -163,7 +167,7 @@ export const generateCompanyPlan = async (userId, userName, level, companyData) 
 
     // 2. If not in DB, prepare the payload to fetch from n8n
     const payload = {
-      username: userName,
+      username: userId,
       level: level,
       selected_company: {
         name: companyData.name || "",
@@ -211,7 +215,8 @@ export const generateCompanyPlan = async (userId, userName, level, companyData) 
     return { success: false, error: error.message };
   }
 };
-const VITE_N8N_QUESTION_TARGET = import.meta.env.VITE_N8N_QUESTION_TARGET;
+
+
 
 export const generateQuestions = async (userId, companyName, dayNumber) => {
   try {
@@ -308,7 +313,7 @@ export const generateQuestions = async (userId, companyName, dayNumber) => {
   }
 };
 
-const VITE_N8N_ANSWER_TARGET = import.meta.env.VITE_N8N_ANSWER_TARGET;
+
 
 export const submitAnswer = async (userId, questionDocId, questionId, userAnswer) => {
   try {
