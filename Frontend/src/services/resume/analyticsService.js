@@ -44,18 +44,12 @@ export const getSkillProficiency = async (userId) => {
     const skills = Object.entries(skillMap)
       .map(([name, data]) => ({
         name,
-        proficiency: Math.round((data.score / data.count) * 0.9 + Math.random() * 20) // Add variation
+        proficiency: Math.min(100, Math.round(data.score / data.count))
       }))
       .sort((a, b) => b.proficiency - a.proficiency)
-      .slice(0, 5); // Top 5 skills
+      .slice(0, 5);
 
-    return skills.length > 0 ? skills : [
-      { name: 'Problem Solving', proficiency: 72 },
-      { name: 'System Design', proficiency: 58 },
-      { name: 'Communication', proficiency: 85 },
-      { name: 'Leadership', proficiency: 42 },
-      { name: 'Collaboration', proficiency: 90 }
-    ];
+    return skills;
   } catch (error) {
     console.error("Error fetching skill proficiency:", error);
     return [];
@@ -75,19 +69,26 @@ export const getQuizProgress = async (userId) => {
 
     let totalQuestions = 0;
     let completedQuestions = 0;
+    let scoreSum = 0;
 
     snapshot.forEach(doc => {
       const data = doc.data();
       totalQuestions += 1;
       if (data.evaluation) {
         completedQuestions += 1;
+        scoreSum += Number(data.evaluation.score || 0);
       }
     });
 
-    return { completed: completedQuestions, total: totalQuestions };
+    return {
+      completed: completedQuestions,
+      total: totalQuestions,
+      completionRate: totalQuestions > 0 ? Math.round((completedQuestions / totalQuestions) * 100) : 0,
+      averageScore: completedQuestions > 0 ? Math.round(scoreSum / completedQuestions) : 0
+    };
   } catch (error) {
     console.error("Error fetching quiz progress:", error);
-    return { completed: 0, total: 0 };
+    return { completed: 0, total: 0, completionRate: 0, averageScore: 0 };
   }
 };
 
@@ -135,24 +136,13 @@ export const getWeeklyGoals = async (userId) => {
     const docRef = doc(db, "placemate-user-goals", userId);
     const docSnap = await getDoc(docRef);
 
-    if (!docSnap.exists()) {
-      // Return default goals if not found
-      return [
-        { task: 'Complete 5 Mock Interviews', completed: 0, total: 5 },
-        { task: 'Review System Design', completed: 0, total: 3 },
-        { task: 'Practice Coding', completed: 0, total: 4 }
-      ];
-    }
+    if (!docSnap.exists()) return [];
 
     const data = docSnap.data();
     return data.goals || [];
   } catch (error) {
     console.error("Error fetching weekly goals:", error);
-    return [
-      { task: 'Complete 5 Mock Interviews', completed: 0, total: 5 },
-      { task: 'Review System Design', completed: 0, total: 3 },
-      { task: 'Practice Coding', completed: 0, total: 4 }
-    ];
+    return [];
   }
 };
 
@@ -167,29 +157,35 @@ export const getProgressTrend = async (userId) => {
     );
     const snapshot = await getDocs(q);
 
-    // Group by day number
     const dayProgress = {
-      1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0
+      1: { total: 0, completed: 0 },
+      2: { total: 0, completed: 0 },
+      3: { total: 0, completed: 0 },
+      4: { total: 0, completed: 0 },
+      5: { total: 0, completed: 0 },
+      6: { total: 0, completed: 0 },
+      7: { total: 0, completed: 0 }
     };
 
     snapshot.forEach(doc => {
       const data = doc.data();
       const day = data.day || 0;
-      if (day >= 1 && day <= 7 && data.evaluation) {
-        dayProgress[day] += 1;
+      if (day >= 1 && day <= 7) {
+        dayProgress[day].total += 1;
+        if (data.evaluation) {
+          dayProgress[day].completed += 1;
+        }
       }
     });
 
-    // Convert to percentages (0-100)
-    const maxPerDay = snapshot.size / 7;
-    const trend = Object.values(dayProgress).map(count => 
-      Math.round((count / Math.max(maxPerDay, 1)) * 100)
+    const trend = Object.values(dayProgress).map(({ total, completed }) => 
+      total > 0 ? Math.round((completed / total) * 100) : 0
     );
 
-    return trend.length === 7 ? trend : [35, 45, 38, 52, 48, 62, 75]; // Fallback
+    return trend.some((value) => value > 0) ? trend : [];
   } catch (error) {
     console.error("Error fetching progress trend:", error);
-    return [35, 45, 38, 52, 48, 62, 75]; // Fallback data
+    return [];
   }
 };
 
@@ -207,10 +203,13 @@ export const getDashboardAnalytics = async (userId, companies = []) => {
     ]);
 
     const jobReadiness = calculateJobReadiness(companies);
+    const activeDays = progressTrend.filter((dayValue) => dayValue > 0).length;
     
     return {
       jobReadiness,
-      skillGrowth: Math.max(5, jobReadiness - 30), // Growth percentage
+      dailyPrepProgress: quizProgress.completionRate || 0,
+      activeDays,
+      momentumScore: progressTrend.length > 0 ? progressTrend[progressTrend.length - 1] : 0,
       quizProgress,
       skillProficiency,
       achievements,
@@ -220,13 +219,15 @@ export const getDashboardAnalytics = async (userId, companies = []) => {
   } catch (error) {
     console.error("Error fetching dashboard analytics:", error);
     return {
-      jobReadiness: 42,
-      skillGrowth: 12,
-      quizProgress: { completed: 0, total: 0 },
+      jobReadiness: 0,
+      dailyPrepProgress: 0,
+      activeDays: 0,
+      momentumScore: 0,
+      quizProgress: { completed: 0, total: 0, completionRate: 0, averageScore: 0 },
       skillProficiency: [],
       achievements: { streakDays: 0, perfectMatches: 0, expertModeUnlocked: false, achievements: [] },
       weeklyGoals: [],
-      progressTrend: [35, 45, 38, 52, 48, 62, 75]
+      progressTrend: []
     };
   }
 };
