@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Clock, Calendar, CheckCircle2, AlertTriangle, BookOpen, Link as LinkIcon, ArrowLeft } from 'lucide-react';
+import { Clock, Calendar, CheckCircle2, AlertTriangle, BookOpen, Link as LinkIcon, ArrowLeft, Lock, Unlock } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
-import { generateCompanyPlan, getUserResults } from '../services/resumeService';
+import { generateCompanyPlan, getUserResults, getUserProgress } from '../services/resumeService';
 
 const CompanyPlan = () => {
   const { companyName } = useParams();
@@ -14,9 +14,10 @@ const CompanyPlan = () => {
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [progress, setProgress] = useState({});
 
   useEffect(() => {
-    const fetchPlan = async () => {
+    const fetchPlanAndProgress = async () => {
       if (!user) return;
       
       setLoading(true);
@@ -33,7 +34,11 @@ const CompanyPlan = () => {
           throw new Error("Company not found in your target list.");
         }
 
-        const result = await generateCompanyPlan(user.uid, profile.level, companyObj);
+        // Fetch user progress for unlocking days
+        const progressData = await getUserProgress(user.uid, companyName);
+        setProgress(progressData);
+
+        const result = await generateCompanyPlan(user.uid, user.displayName || "User", profile.level, companyObj);
         if (result.success && result.data) {
           setPlan(result.data);
         } else {
@@ -46,14 +51,14 @@ const CompanyPlan = () => {
       }
     };
 
-    fetchPlan();
+    fetchPlanAndProgress();
   }, [companyName, user]);
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-amber-500/30 font-inter">
       <Navbar />
       
-      <main className="max-w-5xl mx-auto px-6 pt-32 pb-24">
+      <main className="max-w-7xl w-full mx-auto px-6 pt-32 pb-24">
         <button 
           onClick={() => navigate('/dashboard')}
           className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-amber-500 transition-colors mb-12"
@@ -162,7 +167,7 @@ const CompanyPlan = () => {
                       )}
                     </h4>
                     <p className="text-sm text-slate-400 leading-relaxed font-medium mb-6">
-                      {plan.verdict.message}
+                      {plan.verdict.message?.replace(user.uid, user.displayName || "User")}
                     </p>
                     {plan.verdict.careers_url && (
                       <a href={plan.verdict.careers_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-black font-black uppercase tracking-widest text-[10px] rounded-xl hover:bg-slate-200 transition-colors">
@@ -180,49 +185,69 @@ const CompanyPlan = () => {
                 </h3>
                 
                 <div className="space-y-8">
-                  {plan.days?.map((day) => (
-                    <div key={day.day_number} className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden hover:border-white/10 transition-colors">
-                      <div className="p-8 border-b border-white/5 bg-white/[0.01] flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div>
-                          <div className="flex items-center gap-3 mb-2">
-                            <span className="px-3 py-1 bg-amber-500 text-black font-black text-[10px] uppercase tracking-widest rounded-full">Day {day.day_number}</span>
-                            <span className="text-slate-400 font-bold text-[10px] uppercase tracking-widest flex items-center gap-1">
-                              <Clock size={12}/> {day.total_time}
-                            </span>
-                          </div>
-                          <h4 className="text-xl font-black text-white">{day.title}</h4>
-                        </div>
-                        <div className="flex flex-col md:items-end gap-3 mt-4 md:mt-0">
-                          <p className="text-sm text-slate-500 italic max-w-md md:text-right">{day.theme}</p>
-                          <button 
-                            onClick={() => navigate(`/practice/${companyName}/${day.day_number}`)}
-                            className="px-6 py-2 bg-white text-black font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-amber-500 transition-colors shadow-lg"
-                          >
-                            Practice Day {day.day_number}
-                          </button>
-                        </div>
-                      </div>
-                      
-                      <div className="p-8">
-                        <div className="space-y-6">
-                          {day.sessions?.map((session, i) => (
-                            <div key={i} className="flex gap-6 items-start">
-                              <div className="w-24 shrink-0 text-right pt-1">
-                                <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest block mb-1">{session.block}</span>
-                                <span className="text-xs font-bold text-slate-500 block">{session.duration}</span>
-                              </div>
-                              <div className="w-0.5 min-h-[40px] bg-white/10 rounded-full shrink-0 relative mt-2">
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-amber-500" />
-                              </div>
-                              <div className="flex-1 pb-4">
-                                <p className="text-base font-bold text-white mb-3">{session.focus}</p>
-                              </div>
+                  {plan.days?.map((day) => {
+                    const prevDay = day.day_number - 1;
+                    const isPrevDayComplete = prevDay === 0 || (progress[prevDay] && progress[prevDay].total > 0 && progress[prevDay].completed === progress[prevDay].total);
+                    const isUnlocked = day.day_number === 1 || isPrevDayComplete;
+                    
+                    const isCurrentDayComplete = progress[day.day_number] && progress[day.day_number].total > 0 && progress[day.day_number].completed === progress[day.day_number].total;
+
+                    return (
+                      <div key={day.day_number} className={`bg-white/[0.02] border rounded-3xl overflow-hidden transition-all duration-300 ${isUnlocked ? 'border-white/5 hover:border-white/10 opacity-100' : 'border-white/5 opacity-50 grayscale pointer-events-none'}`}>
+                        <div className="p-8 border-b border-white/5 bg-white/[0.01] flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <div>
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className={`px-3 py-1 font-black text-[10px] uppercase tracking-widest rounded-full ${isCurrentDayComplete ? 'bg-green-500 text-black' : isUnlocked ? 'bg-amber-500 text-black' : 'bg-slate-700 text-slate-400'}`}>
+                                Day {day.day_number}
+                              </span>
+                              <span className="text-slate-400 font-bold text-[10px] uppercase tracking-widest flex items-center gap-1">
+                                <Clock size={12}/> {day.total_time}
+                              </span>
                             </div>
-                          ))}
+                            <h4 className="text-xl font-black text-white flex items-center gap-3">
+                              {day.title} 
+                              {!isUnlocked && <Lock size={16} className="text-slate-500" />}
+                              {isCurrentDayComplete && <CheckCircle2 size={16} className="text-green-500" />}
+                            </h4>
+                          </div>
+                          <div className="flex flex-col md:items-end gap-3 mt-4 md:mt-0">
+                            <p className="text-sm text-slate-500 italic max-w-md md:text-right">{day.theme}</p>
+                            {isUnlocked ? (
+                              <button 
+                                onClick={() => navigate(`/practice/${companyName}/${day.day_number}`)}
+                                className={`px-6 py-2 font-black uppercase text-[10px] tracking-widest rounded-xl transition-colors shadow-lg flex items-center gap-2 ${isCurrentDayComplete ? 'bg-white/10 text-white hover:bg-white/20 border border-white/20' : 'bg-white text-black hover:bg-amber-500'}`}
+                              >
+                                {isCurrentDayComplete ? 'Review Day' : `Practice Day ${day.day_number}`}
+                              </button>
+                            ) : (
+                              <div className="px-6 py-2 bg-white/5 text-slate-500 font-black uppercase text-[10px] tracking-widest rounded-xl border border-white/5 flex items-center gap-2">
+                                <Lock size={12} /> Locked
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="p-8 relative">
+                          <div className="space-y-6">
+                            {day.sessions?.map((session, i) => (
+                              <div key={i} className="flex gap-6 items-start">
+                                <div className="w-24 shrink-0 text-right pt-1">
+                                  <span className={`text-[10px] font-black uppercase tracking-widest block mb-1 ${isUnlocked ? 'text-amber-500' : 'text-slate-600'}`}>{session.block}</span>
+                                  <span className="text-xs font-bold text-slate-500 block">{session.duration}</span>
+                                </div>
+                                <div className="w-0.5 min-h-[40px] bg-white/10 rounded-full shrink-0 relative mt-2">
+                                  <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full ${isUnlocked ? 'bg-amber-500' : 'bg-slate-700'}`} />
+                                </div>
+                                <div className="flex-1 pb-4">
+                                  <p className="text-base font-bold text-slate-300 mb-3">{session.focus}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
               

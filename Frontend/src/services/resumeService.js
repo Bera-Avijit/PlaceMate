@@ -146,7 +146,7 @@ export const saveUserResults = async (userId, data) => {
   }
 };
 
-export const generateCompanyPlan = async (userId, level, companyData) => {
+export const generateCompanyPlan = async (userId, userName, level, companyData) => {
   try {
     // 1. Check if the plan already exists in Firestore
     const safeCompanyName = companyData.name.replace(/[^a-zA-Z0-9]/g, "_");
@@ -163,7 +163,7 @@ export const generateCompanyPlan = async (userId, level, companyData) => {
 
     // 2. If not in DB, prepare the payload to fetch from n8n
     const payload = {
-      username: userId,
+      username: userName,
       level: level,
       selected_company: {
         name: companyData.name || "",
@@ -242,10 +242,10 @@ export const generateQuestions = async (userId, companyName, dayNumber) => {
     if (import.meta.env.DEV) {
       baseUrl = baseUrl.replace("https://abrar1.app.n8n.cloud", "/n8n-api");
     }
-    const url = `${baseUrl}?userId=${userId}`;
+    const url = `${baseUrl}?userId=${userId}&companyName=${encodeURIComponent(companyName)}&dayNumber=${dayNumber}`;
 
     // We use a POST request with the Vite Proxy (which completely prevents CORS).
-    // We send userId both in the URL (query param) and the Body (JSON) so n8n can catch it either way!
+    // We send data both in the URL (query param) and the Body (JSON) so n8n can catch it either way!
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -296,6 +296,7 @@ export const generateQuestions = async (userId, companyName, dayNumber) => {
     await Promise.all(cleanedQuestions.map(async (q) => {
       // Auto-generate a document ID for each question
       const newDocRef = doc(questionsCollection);
+      q.docId = newDocRef.id; // Assign ID to the local object so the UI can use it
       await setDoc(newDocRef, q);
     }));
     console.log(`✅ Saved ${cleanedQuestions.length} AI generated questions to Firestore cache.`);
@@ -304,5 +305,86 @@ export const generateQuestions = async (userId, companyName, dayNumber) => {
   } catch (error) {
     console.error("Question Generation Error:", error);
     return { success: false, error: error.message };
+  }
+};
+
+const VITE_N8N_ANSWER_TARGET = import.meta.env.VITE_N8N_ANSWER_TARGET;
+
+export const submitAnswer = async (userId, questionDocId, questionId, userAnswer) => {
+  try {
+    let baseUrl = VITE_N8N_ANSWER_TARGET;
+    if (import.meta.env.DEV) {
+      baseUrl = baseUrl.replace("https://abrar1.app.n8n.cloud", "/n8n-api");
+    }
+
+    const url = `${baseUrl}?userId=${userId}&questionId=${questionId}`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, questionId, userAnswer }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Answer Submission Failed: ${response.status}`);
+    }
+
+    const rawData = await response.json();
+    
+    // N8N often returns an array or wrapped object
+    const resultData = Array.isArray(rawData) ? rawData[0] : (rawData.data ? rawData.data[0] : rawData);
+
+    const evaluation = {
+      score: resultData.score || 0,
+      verdict: resultData.verdict || "unknown",
+      feedback: resultData.feedback || "",
+      improvement: resultData.improvement || "",
+      idealAnswer: resultData.idealAnswer || "",
+      userAnswer: userAnswer,
+    };
+
+    // Save the evaluation back to the specific question document in Firestore
+    if (questionDocId) {
+      const docRef = doc(db, "placemate-user-questions", questionDocId);
+      await setDoc(docRef, { evaluation: evaluation }, { merge: true });
+      console.log(`✅ Saved AI Evaluation to Firestore for question ${questionId}`);
+    }
+
+    return { success: true, data: evaluation };
+  } catch (error) {
+    console.error("Answer Submission Error:", error);
+    return { success: false, error: error.message };
+  }
+};
+
+export const getUserProgress = async (userId, companyName) => {
+  try {
+    const q = query(
+      collection(db, "placemate-user-questions"),
+      where("username", "==", userId),
+      where("target_company", "==", companyName)
+    );
+    const snapshot = await getDocs(q);
+    
+    const progressByDay = {};
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const dayNum = data.day;
+      if (!dayNum) return;
+      
+      if (!progressByDay[dayNum]) {
+        progressByDay[dayNum] = { total: 0, completed: 0 };
+      }
+      
+      progressByDay[dayNum].total += 1;
+      if (data.evaluation) {
+        progressByDay[dayNum].completed += 1;
+      }
+    });
+    
+    return progressByDay;
+  } catch (error) {
+    console.error("Error fetching user progress:", error);
+    return {};
   }
 };

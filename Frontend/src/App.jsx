@@ -16,7 +16,7 @@ function App() {
     <Router>
       <ScrollToTop />
       <AuthProvider>
-        <div className="bg-black min-h-screen font-inter selection:bg-amber-500/30 selection:text-amber-500">
+        <div className="bg-black min-h-screen font-inter selection:bg-amber-500/30 selection:text-amber-500 overflow-x-hidden w-full relative">
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
