@@ -139,16 +139,16 @@ const StatPill = ({ icon: Icon, value, label, delay = 0 }) => (
     initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: delay + 0.5, duration: 0.5 }}
-    className="flex items-center gap-3 px-4 py-3 rounded-2xl border border-white/8 bg-white/3 backdrop-blur-sm"
+    className="flex items-center gap-2.5 px-3 py-2 rounded-2xl border border-white/8 bg-white/3 backdrop-blur-sm"
   >
-    <div className="w-9 h-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
-      <Icon size={16} className="text-amber-400" />
+    <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center">
+      <Icon size={14} className="text-amber-400" />
     </div>
     <div>
-      <p className="text-lg font-black text-white leading-none">
+      <p className="text-base font-black text-white leading-none">
         <Counter to={value} suffix="+" />
       </p>
-      <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-0.5">{label}</p>
+      <p className="text-[8px] text-slate-500 uppercase tracking-widest mt-0.5">{label}</p>
     </div>
   </motion.div>
 );
@@ -208,7 +208,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#080808]">
+    <section className="relative h-screen min-h-[650px] flex items-center justify-center overflow-hidden bg-[#080808] pt-20">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(245,158,11,0.08),transparent)]" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-amber-500/[0.025] blur-[120px] pointer-events-none" />
       <div
@@ -221,13 +221,13 @@ const HeroSection = () => {
       />
       <ParticleField />
 
-      <div className="relative z-10 max-w-7xl w-full mx-auto px-6 lg:px-12 py-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <div className="relative z-10 max-w-7xl w-full mx-auto px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
         <div className="flex flex-col">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
-            className="flex items-center gap-3 mb-8"
+            className="flex items-center gap-3 mb-6"
           >
             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
@@ -239,9 +239,9 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.1 }}
-            className="mb-6"
+            className="mb-4"
           >
-            <h1 className="text-[72px] lg:text-[88px] font-black leading-[0.88] tracking-[-0.04em] text-white">
+            <h1 className="text-[60px] lg:text-[76px] font-black leading-[0.88] tracking-[-0.04em] text-white">
               <span className="block italic" style={{ WebkitTextFillColor: "transparent", WebkitTextStroke: "1px rgba(245,158,11,0.6)" }}>
                 Target.
               </span>
@@ -250,19 +250,13 @@ const HeroSection = () => {
             </h1>
           </motion.div>
 
-          <motion.div className="flex flex-wrap gap-2 mb-7">
-            {["Resume AI", "Mock Tests", "Live Drives", "Interview Prep", "DSA Tracker"].map((tag, i) => (
-              <FeatureTag key={tag} delay={0.3 + i * 0.07}>
-                {tag}
-              </FeatureTag>
-            ))}
-          </motion.div>
+          <motion.div className="flex flex-wrap gap-2 mb-4" />
 
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="text-[15px] text-slate-400 max-w-md mb-10 leading-relaxed"
+            className="text-[14px] text-slate-400 max-w-md mb-8 leading-relaxed"
           >
             The definitive AI ecosystem for placement mastery. Crack DSA, ace mock interviews,
             and land your dream offer - all in one precision-built platform.
@@ -272,7 +266,7 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.55 }}
-            className="flex flex-wrap items-center gap-4 mb-12"
+            className="flex flex-wrap items-center gap-4 mb-8"
           >
             <motion.button
               onHoverStart={() => setHovered(true)}
@@ -310,11 +304,11 @@ const HeroSection = () => {
           initial={{ opacity: 0, scale: 0.88 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1, ease: "easeOut" }}
-          className="flex flex-col items-center justify-center gap-10"
+          className="flex flex-col items-center justify-center gap-5"
         >
           <AIOrb />
 
-          <div className="grid grid-cols-2 gap-3 w-full max-w-[340px]">
+          <div className="grid grid-cols-2 gap-2 w-full max-w-[420px]">
             {[
               { icon: Code2, title: "DSA Practice", desc: "500+ curated problems" },
               { icon: Target, title: "Mock Drives", desc: "Real company patterns" },
@@ -331,13 +325,15 @@ const HeroSection = () => {
                   borderColor: "rgba(245,158,11,0.3)",
                   backgroundColor: "rgba(245,158,11,0.05)",
                 }}
-                className="p-4 rounded-2xl border border-white/6 bg-white/[0.02] cursor-pointer transition-colors group"
+                className="p-3 rounded-xl border border-white/6 bg-white/[0.02] cursor-pointer transition-colors group flex items-center gap-3"
               >
-                <div className="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center mb-3">
-                  <card.icon size={15} className="text-amber-400 group-hover:text-amber-300 transition-colors" />
+                <div className="w-8 h-8 shrink-0 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                  <card.icon size={14} className="text-amber-400 group-hover:text-amber-300 transition-colors" />
                 </div>
-                <p className="text-[12px] font-black text-white mb-0.5">{card.title}</p>
-                <p className="text-[10px] text-slate-600">{card.desc}</p>
+                <div className="text-left">
+                  <p className="text-[10px] font-black text-white mb-0.5 uppercase tracking-wide">{card.title}</p>
+                  <p className="text-[8px] text-slate-500 leading-tight">{card.desc}</p>
+                </div>
               </motion.div>
             ))}
           </div>

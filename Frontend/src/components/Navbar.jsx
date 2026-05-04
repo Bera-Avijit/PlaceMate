@@ -38,7 +38,7 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-2xl border-b border-white/8 h-20 flex items-center shadow-xl">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/[0.04] h-20 flex items-center shadow-2xl">
       <div className="w-full max-w-7xl mx-auto px-6 lg:px-10 flex items-center justify-between h-full">
         {/* Logo & Company Name */}
         <Link to="/">
@@ -76,7 +76,7 @@ const Navbar = () => {
                 e.preventDefault();
                 window.scrollTo({ top: 0, behavior: "smooth" });
               } else {
-                // Not on home — navigate programmatically to avoid full reload
+                // Not on home - navigate programmatically to avoid full reload
                 e.preventDefault();
                 navigate("/");
               }

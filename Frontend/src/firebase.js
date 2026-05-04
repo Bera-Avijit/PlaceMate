@@ -13,9 +13,9 @@ const firebaseConfig = {
 
 // Debug Log for Deployment (Self-Cleanup: Safe to leave in production as it only logs existence)
 if (!firebaseConfig.apiKey) {
-  console.error("❌ Firebase API Key is missing! Check your Vercel Environment Variables.");
+  console.error("Firebase API Key is missing! Check your Vercel Environment Variables.");
 } else {
-  console.log("✅ Firebase Config Loaded (Domain: " + firebaseConfig.authDomain + ")");
+  console.log("Firebase Config Loaded (Domain: " + firebaseConfig.authDomain + ")");
 }
 
 // Initialize Firebase

@@ -88,20 +88,20 @@ const FooterSection = () => (
           <ul className="space-y-3 text-sm">
             <li className="flex items-start gap-2">
               <Mail size={16} className="text-amber-500 mt-1 flex-shrink-0" />
-              <a href="mailto:support@placemate.ai" className="text-slate-400 hover:text-amber-400 transition-colors">
-                support@placemate.ai
+              <a href="mailto:placemate.support@gmail.com" className="text-slate-400 hover:text-amber-400 transition-colors">
+                placemate.support@gmail.com
               </a>
             </li>
             <li className="flex items-start gap-2">
               <Phone size={16} className="text-amber-500 mt-1 flex-shrink-0" />
-              <a href="tel:+91-1234567890" className="text-slate-400 hover:text-amber-400 transition-colors">
-                +91 (123) 456-7890
+              <a href="tel:+919876543210" className="text-slate-400 hover:text-amber-400 transition-colors">
+                +91 98765 43210
               </a>
             </li>
             <li className="flex items-start gap-2">
               <MapPin size={16} className="text-amber-500 mt-1 flex-shrink-0" />
               <span className="text-slate-400">
-                Bangalore, India
+                HIT, Haldia, India
               </span>
             </li>
           </ul>

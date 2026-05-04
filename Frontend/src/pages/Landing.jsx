@@ -9,7 +9,7 @@ const Landing = () => {
   return (
     <div className="min-h-screen bg-black text-slate-200 overflow-x-hidden">
       <Navbar />
-      <main className="pt-20">
+      <main>
         <HeroSection />
         <FeaturesSection />
         <AboutSection />
