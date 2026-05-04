@@ -9,12 +9,16 @@ import {
   Target, 
   ArrowRight,
   CloudUpload,
-  ArrowLeft
+  ArrowLeft,
+  Search,
+  Plus,
+  X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../components/Navbar';
 import ResumePanel from '../components/sections/ResumePanel';
-import { uploadResume, getUserResults } from '../services/resumeService';
+import { uploadResume, getUserResults, saveSelectedCompany } from '../services/resumeService';
+import { basicCompanyCatalog } from '../data/mockCompanies';
 
 const ResumeParsing = () => {
   const navigate = useNavigate();
@@ -27,6 +31,26 @@ const ResumeParsing = () => {
   const [onboardingMode, setOnboardingMode] = useState('choice');
   const [isLoadingPersistent, setIsLoadingPersistent] = useState(true);
   const [unlockedCompany, setUnlockedCompany] = useState(localStorage.getItem('unlockedCompany') || null);
+  const [companySearch, setCompanySearch] = useState('');
+  const [selectedBasicsCompany, setSelectedBasicsCompany] = useState('');
+  const [showAllBasicsCompanies, setShowAllBasicsCompanies] = useState(false);
+
+  const normalizedSearch = companySearch.trim().toLowerCase();
+  const filteredBasicsCompanies = basicCompanyCatalog.filter((company) =>
+    company.toLowerCase().includes(normalizedSearch)
+  );
+  const visibleBasicsCompanies =
+    showAllBasicsCompanies || normalizedSearch
+      ? filteredBasicsCompanies
+      : filteredBasicsCompanies.slice(0, 8);
+
+  const handleSelectBasicsCompany = (company) => {
+    setSelectedBasicsCompany(company);
+  };
+
+  const handleClearSelectedBasicsCompany = () => {
+    setSelectedBasicsCompany('');
+  };
 
   const handleViewPlan = (companyName) => {
     if (!unlockedCompany) {
@@ -217,17 +241,83 @@ const ResumeParsing = () => {
                     ← Back
                   </button>
                   <h2 className="text-2xl font-black mb-4 uppercase italic">Choose Your Target Company</h2>
-                  <p className="text-slate-500 text-sm mb-10 font-bold uppercase tracking-widest">Select a company to start your foundational prep roadmap</p>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {['Google', 'Microsoft', 'Amazon', 'Meta', 'Firebase', 'MongoDB', 'Netflix', 'Tesla'].map((company) => (
-                      <button 
-                        key={company}
-                        className="p-4 bg-white/5 border border-white/5 rounded-2xl hover:border-amber-500/50 text-[10px] font-black uppercase tracking-widest transition-all"
+                  <p className="text-slate-500 text-sm mb-8 font-bold uppercase tracking-widest">Search and add companies to build your target list</p>
+
+                  <div className="mb-6 relative">
+                    <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                    <input
+                      value={companySearch}
+                      onChange={(e) => {
+                        setCompanySearch(e.target.value);
+                        if (!showAllBasicsCompanies) setShowAllBasicsCompanies(true);
+                      }}
+                      placeholder="Search companies..."
+                      className="w-full bg-black/50 border border-white/10 rounded-2xl pl-12 pr-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-amber-500/40"
+                    />
+                  </div>
+
+                  {selectedBasicsCompany && (
+                    <div className="mb-6">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Selected Company</p>
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-amber-400">{selectedBasicsCompany}</span>
+                        <button onClick={handleClearSelectedBasicsCompany} className="text-slate-400 hover:text-white" aria-label="Clear selection"><X size={12} /></button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {visibleBasicsCompanies.map((company) => {
+                      const isSelected = selectedBasicsCompany === company;
+                      return (
+                        <button
+                          key={company}
+                          onClick={() => handleSelectBasicsCompany(company)}
+                          className={`p-4 border rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-between ${
+                            isSelected
+                              ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                              : 'bg-white/5 border-white/5 hover:border-amber-500/50 text-white'
+                          }`}
+                        >
+                          <span>{company}</span>
+                          {isSelected ? <CheckCircle size={14} /> : <Plus size={14} />}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {!normalizedSearch && filteredBasicsCompanies.length > 8 && (
+                    <div className="mt-6 flex justify-center">
+                      <button
+                        onClick={() => setShowAllBasicsCompanies((prev) => !prev)}
+                        className="px-5 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:border-amber-500/40"
                       >
-                        {company}
+                        {showAllBasicsCompanies ? 'Show Less' : `Show More (${filteredBasicsCompanies.length - 8} more)`}
                       </button>
-                    ))}
+                    </div>
+                  )}
+
+                  {visibleBasicsCompanies.length === 0 && (
+                    <p className="mt-6 text-center text-xs text-slate-500 font-medium">No company matched your search.</p>
+                  )}
+                  <div className="mt-6 text-center">
+                    <button
+                      onClick={async () => {
+                        if (!user?.uid) return setError('Please sign in to continue');
+                        if (!selectedBasicsCompany) return setError('Select one company to continue');
+                        setError(null);
+                        const res = await saveSelectedCompany(user.uid, selectedBasicsCompany);
+                        if (res.success) {
+                          // navigate to plan for that company
+                          navigate(`/plan/${selectedBasicsCompany}`);
+                        } else {
+                          setError(res.error || 'Failed to save selection');
+                        }
+                      }}
+                      className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black rounded-xl font-black text-[10px] uppercase tracking-widest transition-colors"
+                    >
+                      Start Plan with Selected Company
+                    </button>
                   </div>
                 </motion.div>
               )}
@@ -321,7 +411,7 @@ const ResumeParsing = () => {
                               {company.applyReadiness.replace('_', ' ')} • {company.type}
                             </div>
                             
-                            <p className="text-slate-400 text-xs leading-relaxed font-medium mb-8 italic">"{company.matchReason}"</p>
+                            <p className="text-slate-400 text-xs leading-relaxed font-medium mb-8 italic">&ldquo;{company.matchReason}&rdquo;</p>
                             
                             <div className="flex items-center gap-4">
                               <button 
@@ -371,6 +461,12 @@ const ResumeParsing = () => {
                   </div>
                 </div>
               </motion.div>
+            )}
+
+            {error && (
+              <div className="mt-8 bg-red-500/5 border border-red-500/20 text-red-300 text-xs font-bold uppercase tracking-widest rounded-2xl px-6 py-4">
+                {error}
+              </div>
             )}
             </>
           )}

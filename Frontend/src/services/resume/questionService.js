@@ -55,6 +55,7 @@ export const generateQuestions = async (userId, companyName, dayNumber) => {
         question: f.question?.stringValue || "",
         level: f.level?.stringValue || "",
         id: f.id?.stringValue || "",
+      
         topic: f.topic?.stringValue || "",
         session_tip: f.session_tip?.stringValue || "",
         resource_url: f.resource_url?.stringValue || "",

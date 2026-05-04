@@ -46,6 +46,7 @@ const PracticePlan = () => {
         );
         if (result.success && result.data && result.data.length > 0) {
           const sorted = result.data.sort((a, b) => a.session - b.session);
+          console.log(result);
           setQuestions(sorted);
         } else {
           setError(result.error || "No questions generated or backend failed.");
@@ -195,6 +196,19 @@ const PracticePlan = () => {
                         {q.question}
                       </p>
                     </div>
+
+                    {q.link && (
+                      <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 mb-6">
+                        <a
+                          href={q.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-lg font-medium text-amber-400 leading-relaxed break-all hover:text-amber-300 underline underline-offset-4"
+                        >
+                          {q.link}
+                        </a>
+                      </div>
+                    )}
 
                     {q.hint && (
                       <div className="flex items-start gap-3 bg-blue-500/5 border border-blue-500/10 rounded-xl p-5 mb-6">
