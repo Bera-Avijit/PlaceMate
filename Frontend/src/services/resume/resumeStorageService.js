@@ -134,3 +134,39 @@ export const saveUserResults = async (userId, data) => {
     console.error("❌ Error saving results to Firestore:", error);
   }
 };
+
+export const saveSelectedCompany = async (userId, companyName) => {
+  try {
+    const firestoreData = {
+      username: userId,
+      level: 'beginner',
+      company: [
+        {
+          name: companyName,
+          location: 'Unknown',
+          type: 'General',
+          rank: 0,
+          match_score: 0,
+          match_reason: `User selected ${companyName} (manual)`,
+          apply_readiness: 'unknown',
+          careers_url: '#',
+          skill_overlap: [],
+          interview_focus: [],
+          weak_area_warning: ''
+        }
+      ],
+      hasParsed: false,
+      selectedCompany: companyName,
+      lastUpdated: new Date().toISOString(),
+    };
+
+    const docRef = doc(db, "placemate-user-company-recomendation", userId);
+    // merge to avoid overwriting other fields
+    await setDoc(docRef, firestoreData, { merge: true });
+    console.log(`✅ Saved selected company (${companyName}) for user ${userId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("❌ Error saving selected company:", error);
+    return { success: false, error: error.message };
+  }
+};

@@ -8,6 +8,9 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     server: {
+      host: "0.0.0.0",
+      port: 5173,
+      strictPort: true,
       proxy: {
         "/n8n-auth": {
           target: env.VITE_N8N_AUTH_TARGET || "https://abrar1.app.n8n.cloud",
