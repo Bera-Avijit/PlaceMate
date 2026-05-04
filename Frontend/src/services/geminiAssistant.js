@@ -7,8 +7,8 @@ const buildConversationPrompt = ({ messages, locationPathname }) => {
     .map((message) => `${message.role === "assistant" ? "Assistant" : "User"}: ${message.content}`)
     .join("\n");
 
-  return `You are PlaceMate Voice Assistant, a calm, clear, helpful career coach inside a React web app.
-Speak in short, friendly sentences.
+  return `You are PlaceMate Assistant, a calm, clear, helpful career coach inside a React web app.
+Write in short, friendly sentences.
 Keep the flow conversational and practical.
 Ask only one follow-up question at a time.
 If the user is unsure, give a simple next step.
@@ -23,7 +23,27 @@ ${transcript}
 Assistant:`;
 };
 
-export const getGeminiAssistantReply = async ({ messages, locationPathname }) => {
+const buildMockInterviewPrompt = ({ messages, companyName = "a target role" }) => {
+  const transcript = messages
+    .slice(-10)
+    .map((message) => `${message.role === "assistant" ? "Interviewer" : "Candidate"}: ${message.content}`)
+    .join("\n");
+
+  return `You are PlaceMate Mock Interview Coach.
+Run a voice-first interview for ${companyName}.
+Return only valid JSON with exactly these keys: "feedback", "nextQuestion", "score".
+Keep "feedback" short and practical.
+Keep "nextQuestion" as one clear interview question.
+Make "score" a number from 1 to 10.
+Do not wrap the JSON in markdown fences.
+
+Conversation so far:
+${transcript}
+
+Candidate answer and next interview step:`;
+};
+
+const requestGeminiReply = async (prompt) => {
   if (!GEMINI_API_KEY) {
     const msg = "❌ VITE_GEMINI_API_KEY is missing. Add it to your .env.local file: VITE_GEMINI_API_KEY=your_actual_key_here";
     console.error(msg);
@@ -36,7 +56,6 @@ export const getGeminiAssistantReply = async ({ messages, locationPathname }) =>
     throw new Error(msg);
   }
 
-  const prompt = buildConversationPrompt({ messages, locationPathname });
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
   console.log(`🤖 Gemini request: model=${GEMINI_MODEL}, endpoint=[redacted]`);
@@ -79,4 +98,14 @@ export const getGeminiAssistantReply = async ({ messages, locationPathname }) =>
   }
 
   return text;
+};
+
+export const getGeminiAssistantReply = async ({ messages, locationPathname }) => {
+  const prompt = buildConversationPrompt({ messages, locationPathname });
+  return requestGeminiReply(prompt);
+};
+
+export const getGeminiMockInterviewReply = async ({ messages, companyName }) => {
+  const prompt = buildMockInterviewPrompt({ messages, companyName });
+  return requestGeminiReply(prompt);
 };

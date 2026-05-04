@@ -16,6 +16,13 @@ const Navbar = () => {
   const mobileMenuRef = useRef(null);
   const dailyPrepRef = useRef(null);
 
+  const goToRoute = (path) => {
+    setOpen(false);
+    setShowDailyPrep(false);
+    setMobileMenuOpen(false);
+    navigate(path);
+  };
+
   useEffect(() => {
     const onDocClick = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -103,6 +110,13 @@ const Navbar = () => {
           >
             About
           </a>
+          <button
+            type="button"
+            onClick={() => goToRoute('/mock-interview')}
+            className="text-slate-300 hover:text-amber-500 transition-colors border-b-2 border-transparent hover:border-amber-500 pb-1"
+          >
+            Mock Interview
+          </button>
         </div>
 
         {/* Auth Section */}
@@ -113,7 +127,7 @@ const Navbar = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => navigate('/login')}
+                  onClick={() => goToRoute('/login')}
                   className="text-sm font-semibold text-slate-300 hover:text-amber-400 transition-colors"
                 >
                   Sign In
@@ -121,7 +135,7 @@ const Navbar = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => navigate('/register')}
+                  onClick={() => goToRoute('/register')}
                   className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm uppercase tracking-wider rounded-full transition-all shadow-lg"
                 >
                   Get Started
@@ -132,10 +146,19 @@ const Navbar = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => navigate('/resume-parsing')}
+                  onClick={() => goToRoute('/resume-parsing')}
                   className="hidden sm:flex items-center gap-2 px-4 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 font-semibold text-xs uppercase rounded-lg transition-all"
                 >
                   📄 Resume
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => goToRoute('/mock-interview')}
+                  className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-amber-300 font-semibold text-xs uppercase rounded-lg transition-all border border-amber-500/20"
+                >
+                  Mock Interview
                 </motion.button>
                 
                 <div ref={dailyPrepRef} className="relative">
@@ -177,8 +200,7 @@ const Navbar = () => {
                   >
                     <button
                       onClick={() => {
-                        setOpen(false);
-                        navigate('/dashboard');
+                        goToRoute('/dashboard');
                       }}
                       className="w-full text-left px-4 py-3 text-xs font-semibold text-slate-300 hover:text-amber-400 hover:bg-white/5 transition-all rounded-t-2xl"
                     >
@@ -186,8 +208,7 @@ const Navbar = () => {
                     </button>
                     <button
                       onClick={() => {
-                        setOpen(false);
-                        navigate('/pricing');
+                        goToRoute('/pricing');
                       }}
                       className="w-full text-left px-4 py-3 text-xs font-semibold text-slate-300 hover:text-amber-400 hover:bg-white/5 transition-all border-t border-white/5"
                     >
@@ -304,9 +325,14 @@ const Navbar = () => {
                 ) : (
                   <div className="space-y-2">
                     <button
+                      onClick={() => goToRoute('/mock-interview')}
+                      className="w-full text-left px-4 py-3 rounded-2xl text-sm font-semibold text-slate-300 hover:text-amber-400 hover:bg-white/5 transition-all"
+                    >
+                      Mock Interview
+                    </button>
+                    <button
                       onClick={() => {
-                        setMobileMenuOpen(false);
-                        navigate('/resume-parsing');
+                        goToRoute('/resume-parsing');
                       }}
                       className="w-full text-left px-4 py-3 rounded-2xl text-sm font-semibold text-amber-300 hover:text-amber-200 hover:bg-amber-500/10 transition-all flex items-center gap-2"
                     >
@@ -314,8 +340,7 @@ const Navbar = () => {
                     </button>
                     <button
                       onClick={() => {
-                        setMobileMenuOpen(false);
-                        navigate('/dashboard');
+                        goToRoute('/dashboard');
                       }}
                       className="w-full text-left px-4 py-3 rounded-2xl text-sm font-semibold text-slate-300 hover:text-amber-400 hover:bg-white/5 transition-all"
                     >
@@ -323,8 +348,7 @@ const Navbar = () => {
                     </button>
                     <button
                       onClick={() => {
-                        setMobileMenuOpen(false);
-                        navigate('/pricing');
+                        goToRoute('/pricing');
                       }}
                       className="w-full text-left px-4 py-3 rounded-2xl text-sm font-semibold text-slate-300 hover:text-amber-400 hover:bg-white/5 transition-all flex items-center gap-2"
                     >
