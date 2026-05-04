@@ -11,6 +11,7 @@ import ScrollToTop from './components/ScrollToTop';
 import Pricing from './pages/Pricing';
 import CompanyPlan from './pages/CompanyPlan';
 import PracticePlan from './pages/PracticePlan';
+import MockInterview from './pages/MockInterview';
 import VoiceAssistant from './components/VoiceAssistant';
 
 function App() {
@@ -53,6 +54,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ResumeParsing />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/mock-interview" 
+              element={
+                <ProtectedRoute>
+                  <MockInterview />
                 </ProtectedRoute>
               } 
             />

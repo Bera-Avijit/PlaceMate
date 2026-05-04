@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bot, Mic, MicOff, Send, X, Sparkles, Volume2 } from "lucide-react";
+import { Bot, Send, X, Sparkles } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { getGeminiAssistantReply } from "../services/geminiAssistant";
 
@@ -14,7 +14,7 @@ const quickPrompts = [
 const createWelcomeMessage = (pathname) => ({
   id: "welcome",
   role: "assistant",
-  content: `Hi, I’m your PlaceMate assistant. I can guide you on ${pathname === "/" ? "resume prep, interview practice, and company planning" : "the current page and next step"}. Say something or type a question.`,
+  content: `Hi, I’m your PlaceMate assistant. I can guide you on ${pathname === "/" ? "resume prep, interview practice, and company planning" : "the current page and next step"}. Type a question and I’ll help.`,
 });
 
 const VoiceAssistant = () => {
@@ -22,63 +22,13 @@ const VoiceAssistant = () => {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([createWelcomeMessage(location.pathname)]);
   const [input, setInput] = useState("");
-  const [isListening, setIsListening] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState("");
-  const recognitionRef = useRef(null);
-  const transcriptRef = useRef("");
-  const shouldAutoSendRef = useRef(false);
   const messageListRef = useRef(null);
-
-  const speechRecognition = useMemo(() => {
-    if (typeof window === "undefined") return null;
-    return window.SpeechRecognition || window.webkitSpeechRecognition || null;
-  }, []);
 
   useEffect(() => {
     setMessages([createWelcomeMessage(location.pathname)]);
   }, [location.pathname]);
-
-  useEffect(() => {
-    if (!speechRecognition) return;
-
-    const recognition = new speechRecognition();
-    recognition.lang = "en-US";
-    recognition.interimResults = true;
-    recognition.continuous = false;
-
-    recognition.onresult = (event) => {
-      let transcript = "";
-      for (let index = event.resultIndex; index < event.results.length; index += 1) {
-        transcript += event.results[index][0].transcript;
-      }
-      transcriptRef.current = transcript.trim();
-      setInput(transcript.trim());
-      setError("");
-    };
-
-    recognition.onerror = () => {
-      setIsListening(false);
-      shouldAutoSendRef.current = false;
-      setError("Voice input is not available in this browser.");
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-      if (shouldAutoSendRef.current && transcriptRef.current) {
-        void sendMessage(transcriptRef.current);
-      }
-      shouldAutoSendRef.current = false;
-      transcriptRef.current = "";
-    };
-
-    recognitionRef.current = recognition;
-
-    return () => {
-      recognition.stop();
-      recognitionRef.current = null;
-    };
-  }, [speechRecognition]);
 
   useEffect(() => {
     messageListRef.current?.scrollTo({
@@ -86,25 +36,6 @@ const VoiceAssistant = () => {
       behavior: "smooth",
     });
   }, [messages, open]);
-
-  useEffect(() => {
-    return () => {
-      if (typeof window !== "undefined" && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, []);
-
-  const speak = (text) => {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1;
-    utterance.pitch = 1;
-    utterance.lang = "en-US";
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
-  };
 
   const appendMessage = (role, content) => {
     setMessages((prev) => [
@@ -124,15 +55,15 @@ const VoiceAssistant = () => {
     setIsSending(true);
     setError("");
     setInput("");
+    const conversation = [...messages, { role: "user", content: text }];
     appendMessage("user", text);
 
     try {
       const reply = await getGeminiAssistantReply({
-        messages: [...messages, { role: "user", content: text }],
+        messages: conversation,
         locationPathname: location.pathname,
       });
       appendMessage("assistant", reply);
-      speak(reply);
     } catch (err) {
       const fallback = err.message || "The assistant is unavailable right now.";
       setError(fallback);
@@ -140,34 +71,6 @@ const VoiceAssistant = () => {
     } finally {
       setIsSending(false);
     }
-  };
-
-  const startListening = () => {
-    if (!recognitionRef.current) {
-      setError("Voice input is not supported in this browser.");
-      return;
-    }
-
-    shouldAutoSendRef.current = true;
-    transcriptRef.current = "";
-    setInput("");
-    setError("");
-    setIsListening(true);
-
-    try {
-      recognitionRef.current.start();
-    } catch {
-      setIsListening(false);
-      setError("Unable to start voice input.");
-    }
-  };
-
-  const stopListening = () => {
-    shouldAutoSendRef.current = false;
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
-    setIsListening(false);
   };
 
   const handleQuickPrompt = (prompt) => {
@@ -196,9 +99,9 @@ const VoiceAssistant = () => {
             <div className="flex items-center justify-between border-b border-white/10 px-4 py-4">
               <div>
                 <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.35em] text-amber-500">
-                  <Sparkles size={12} /> Voice Assistant
+                  <Sparkles size={12} /> Chat Assistant
                 </p>
-                <p className="mt-1 text-[11px] text-slate-400">Gemini + free browser speech tools</p>
+                <p className="mt-1 text-[11px] text-slate-400">Gemini-powered text chat</p>
               </div>
               <button onClick={() => setOpen(false)} className="text-slate-400 transition-colors hover:text-white" aria-label="Close voice assistant">
                 <X size={18} />
@@ -250,15 +153,6 @@ const VoiceAssistant = () => {
                   className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
                 />
                 <button
-                  onClick={isListening ? stopListening : startListening}
-                  className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
-                    isListening ? "bg-red-500 text-white" : "bg-white/5 text-slate-300 hover:text-amber-400"
-                  }`}
-                  aria-label={isListening ? "Stop listening" : "Start listening"}
-                >
-                  {isListening ? <MicOff size={16} /> : <Mic size={16} />}
-                </button>
-                <button
                   onClick={() => void sendMessage()}
                   disabled={isSending}
                   className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500 text-black transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
@@ -269,13 +163,8 @@ const VoiceAssistant = () => {
               </div>
 
               <div className="mt-3 flex items-center justify-between text-[10px] uppercase tracking-[0.25em] text-slate-500">
-                <span>{isSending ? "Thinking..." : isListening ? "Listening..." : "Ready"}</span>
-                <button
-                  onClick={() => speak(messages[messages.length - 1]?.content || "")}
-                  className="flex items-center gap-1 text-slate-500 transition-colors hover:text-amber-400"
-                >
-                  <Volume2 size={12} /> Replay last
-                </button>
+                <span>{isSending ? "Thinking..." : "Ready"}</span>
+                <span>Text only</span>
               </div>
 
               {error ? <p className="mt-3 text-xs text-red-400">{error}</p> : null}
