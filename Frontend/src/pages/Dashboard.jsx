@@ -27,7 +27,7 @@ const Dashboard = () => {
   const [parsedData, setParsedData] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [unlockedCompany, setUnlockedCompany] = useState(localStorage.getItem('unlockedCompany') || null);
   const quizProgress = analytics?.quizProgress || { completed: 0, total: 0, completionRate: 0, averageScore: 0 };
   const progressTrend = analytics?.progressTrend || [];
@@ -71,34 +71,48 @@ const Dashboard = () => {
     loadData();
   }, [user]);
 
+  useEffect(() => {
+    const handleViewportChange = () => {
+      if (window.innerWidth >= 1280) {
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(false);
+      }
+    };
+
+    handleViewportChange();
+    window.addEventListener('resize', handleViewportChange);
+    return () => window.removeEventListener('resize', handleViewportChange);
+  }, []);
+
   return (
     <div className="min-h-screen bg-black text-white selection:bg-amber-500/30">
       <Navbar />
       
-      <main className="max-w-7xl mx-auto px-8 pt-32 pb-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-32 pb-10 sm:pb-12">
         {/* Profile Header Card */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-12 bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-amber-500/30 rounded-3xl p-8"
+          className="mb-8 sm:mb-10 lg:mb-12 bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-amber-500/30 rounded-3xl p-5 sm:p-6 lg:p-8"
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-2xl font-black">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4 sm:gap-6 min-w-0">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-xl sm:text-2xl font-black shrink-0">
                 {user?.displayName?.charAt(0) || 'U'}
               </div>
-              <div>
-                <h1 className="text-3xl font-black uppercase italic mb-1">
+              <div className="min-w-0">
+                <h1 className="text-2xl sm:text-3xl font-black uppercase italic mb-1 truncate">
                   {user?.displayName || 'User'}
                 </h1>
-                <p className="text-amber-500 font-bold uppercase tracking-[0.2em] text-[10px]">
+                <p className="text-amber-500 font-bold uppercase tracking-[0.2em] text-[10px] break-all">
                   {user?.email}
                 </p>
               </div>
             </div>
             <button 
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="hidden lg:flex items-center gap-3 px-6 py-3 bg-black border border-amber-500/30 rounded-2xl hover:border-amber-500/60 transition-all group"
+              className="hidden xl:flex items-center gap-3 px-5 py-3 bg-black border border-amber-500/30 rounded-2xl hover:border-amber-500/60 transition-all group self-start"
             >
               <span className="text-[10px] font-black uppercase tracking-widest text-amber-500 group-hover:text-amber-400">
                 {sidebarOpen ? 'Focus' : 'Expand'}
@@ -108,12 +122,24 @@ const Dashboard = () => {
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8">
           
-          <div className={`${sidebarOpen ? 'lg:col-span-8' : 'lg:col-span-12'} space-y-8 transition-all duration-500`}>
+          <div className={`${sidebarOpen ? 'xl:col-span-8' : 'xl:col-span-12'} space-y-6 lg:space-y-8 transition-all duration-500 min-w-0`}>
+            <div className="xl:hidden mb-2">
+              <button
+                onClick={() => setSidebarOpen((prev) => !prev)}
+                className="w-full flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left"
+              >
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Analytics Panel</div>
+                  <div className="text-sm font-bold text-white">{sidebarOpen ? 'Hide side insights' : 'Show side insights'}</div>
+                </div>
+                <LayoutDashboard size={16} className="text-amber-500" />
+              </button>
+            </div>
             
             {loading ? (
-              <div className="bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] p-20 flex flex-col items-center justify-center">
+              <div className="bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] p-10 sm:p-14 lg:p-20 flex flex-col items-center justify-center text-center">
                 <div className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-6" />
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Loading Analytics...</p>
               </div>
@@ -123,19 +149,19 @@ const Dashboard = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-amber-500/30 rounded-2xl p-8"
+                  className="bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-amber-500/30 rounded-2xl p-5 sm:p-6 lg:p-8"
                 >
-                  <div className="flex items-center gap-4 mb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
                     <div className="p-3 bg-amber-500/20 rounded-xl">
                       <Zap className="text-amber-500" size={24} />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-black uppercase">Get Started with Resume Analysis</h3>
-                      <p className="text-slate-400 text-xs font-medium mt-1">Upload your resume to unlock personalized prep plans for your target companies</p>
+                      <h3 className="text-base sm:text-lg font-black uppercase">Get Started with Resume Analysis</h3>
+                      <p className="text-slate-400 text-xs sm:text-sm font-medium mt-1">Upload your resume to unlock personalized prep plans for your target companies</p>
                     </div>
                     <button
                       onClick={() => navigate('/resume-parsing')}
-                      className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest text-xs rounded-lg transition-all flex items-center gap-2 whitespace-nowrap"
+                      className="w-full sm:w-auto px-6 py-3 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest text-xs rounded-lg transition-all flex items-center justify-center gap-2 whitespace-nowrap"
                     >
                       Upload Resume
                       <ArrowRight size={14} />
@@ -145,7 +171,7 @@ const Dashboard = () => {
               ) : (
                 <>
                   {/* Key Metrics Row */}
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                     {[
                       { label: 'Job Readiness', value: `${analytics?.jobReadiness ?? 0}%`, icon: Briefcase, color: 'from-amber-500 to-amber-600', change: 'From company matches' },
                       { label: 'Daily Prep', value: `${dailyPrepProgress}%`, icon: TrendingUp, color: 'from-green-500 to-green-600', change: `${quizProgress.completed}/${quizProgress.total} answered • ${momentumScore}% momentum` },
@@ -157,7 +183,7 @@ const Dashboard = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.1 }}
-                        className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all"
+                        className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-2xl p-5 sm:p-6 hover:border-white/20 transition-all"
                       >
                         <div className="flex items-center justify-between mb-4">
                           <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">{metric.label}</span>
@@ -172,30 +198,30 @@ const Dashboard = () => {
                   </div>
 
                   {/* Progress Chart & Skills Heatmap */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                     {/* Improvement Graph */}
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
-                      className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-8"
+                      className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-5 sm:p-6 lg:p-8 min-w-0"
                     >
-                      <div className="flex items-center justify-between mb-8">
+                      <div className="flex items-center justify-between gap-4 mb-6 lg:mb-8">
                         <div>
-                          <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white mb-1">Progress Trend</h3>
+                          <h3 className="text-xs sm:text-sm font-black uppercase tracking-[0.3em] text-white mb-1">Progress Trend</h3>
                           <p className="text-[10px] font-bold text-slate-500">Actual completion rate by day</p>
                         </div>
                         <BarChart3 size={20} className="text-amber-500" />
                       </div>
 
                       {progressTrend.length > 0 ? (
-                        <div className="space-y-4">
+                        <div className="space-y-3 sm:space-y-4">
                           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, idx) => {
                             const value = progressTrend[idx] || 0;
                             const height = Math.max(18, value * 1.25);
                             return (
-                              <div key={idx} className="flex items-end gap-3">
-                                <span className="text-[9px] font-bold text-slate-600 w-8">{day}</span>
+                              <div key={idx} className="flex items-end gap-2 sm:gap-3">
+                                <span className="text-[9px] font-bold text-slate-600 w-7 sm:w-8">{day}</span>
                                 <div className="flex-1 flex items-end gap-1">
                                   <motion.div
                                     initial={{ height: 0 }}
@@ -210,7 +236,7 @@ const Dashboard = () => {
                           })}
                         </div>
                       ) : (
-                        <div className="h-[260px] flex flex-col items-center justify-center text-center border border-dashed border-white/10 rounded-2xl bg-white/[0.02] px-6">
+                        <div className="min-h-[220px] sm:min-h-[260px] flex flex-col items-center justify-center text-center border border-dashed border-white/10 rounded-2xl bg-white/[0.02] px-6">
                           <BarChart3 size={28} className="text-slate-600 mb-3" />
                           <p className="text-sm font-black text-white mb-1">No daily prep data yet</p>
                           <p className="text-xs text-slate-500 max-w-sm">Answer a few practice questions and the dashboard will build a real trend line from your activity.</p>
@@ -223,11 +249,11 @@ const Dashboard = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 }}
-                      className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-8"
+                      className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-5 sm:p-6 lg:p-8 min-w-0"
                     >
-                      <div className="flex items-center justify-between mb-8">
+                      <div className="flex items-center justify-between gap-4 mb-6 lg:mb-8">
                         <div>
-                          <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white mb-1">Skills Proficiency</h3>
+                          <h3 className="text-xs sm:text-sm font-black uppercase tracking-[0.3em] text-white mb-1">Skills Proficiency</h3>
                           <p className="text-[10px] font-bold text-slate-500">Derived from your matched companies</p>
                         </div>
                         <Flame size={20} className="text-amber-500" />
@@ -257,7 +283,7 @@ const Dashboard = () => {
                           ))}
                         </div>
                       ) : (
-                        <div className="h-[220px] flex flex-col items-center justify-center text-center border border-dashed border-white/10 rounded-2xl bg-white/[0.02] px-6">
+                        <div className="min-h-[200px] sm:min-h-[220px] flex flex-col items-center justify-center text-center border border-dashed border-white/10 rounded-2xl bg-white/[0.02] px-6">
                           <Flame size={28} className="text-slate-600 mb-3" />
                           <p className="text-sm font-black text-white mb-1">No skill profile yet</p>
                           <p className="text-xs text-slate-500 max-w-sm">Company matches will populate this chart with real proficiency signals once your resume analysis is available.</p>
@@ -271,30 +297,30 @@ const Dashboard = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-8"
+                    className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-5 sm:p-6 lg:p-8 min-w-0"
                   >
-                    <div className="flex items-center justify-between mb-8">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 lg:mb-8">
                       <div>
-                        <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white mb-1">Company Match Heatmap</h3>
+                        <h3 className="text-xs sm:text-sm font-black uppercase tracking-[0.3em] text-white mb-1">Company Match Heatmap</h3>
                         <p className="text-[10px] font-bold text-slate-500">{parsedData.companies?.length || 0} companies analyzed</p>
                       </div>
                       <Target size={20} className="text-amber-500" />
                     </div>
 
-                    <div className="space-y-6">
+                    <div className="space-y-5 sm:space-y-6">
                       {parsedData.companies?.slice(0, 6).map((company, idx) => (
                         <div key={idx}>
-                          <div className="flex justify-between items-center mb-3">
-                            <div className="flex items-center gap-3">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-3">
+                            <div className="flex items-center gap-3 min-w-0">
                               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-xs font-black text-white">
                                 {company.name.charAt(0)}
                               </div>
-                              <div>
-                                <p className="text-sm font-black uppercase">{company.name}</p>
-                                <p className="text-[9px] text-slate-500 font-bold">{company.location}</p>
+                              <div className="min-w-0">
+                                <p className="text-sm font-black uppercase truncate">{company.name}</p>
+                                <p className="text-[9px] text-slate-500 font-bold truncate">{company.location}</p>
                               </div>
                             </div>
-                            <div className="text-right">
+                            <div className="text-left sm:text-right">
                               <p className="text-lg font-black text-amber-500">{company.matchScore}%</p>
                               <p className="text-[9px] text-slate-500 font-bold">Match Score</p>
                             </div>
@@ -332,26 +358,26 @@ const Dashboard = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="space-y-8 mt-8 pt-8 border-t border-white/5"
+                    className="space-y-6 lg:space-y-8 mt-8 pt-8 border-t border-white/5"
                   >
                     <div className="flex items-center justify-between px-2">
-                      <h3 className="text-sm font-black uppercase tracking-[0.3em] text-slate-500">Your Prep Plans</h3>
+                      <h3 className="text-xs sm:text-sm font-black uppercase tracking-[0.3em] text-slate-500">Your Prep Plans</h3>
                       <span className="text-[10px] font-black text-amber-500 bg-amber-500/5 px-3 py-1 rounded-full uppercase tracking-[0.2em] border border-amber-500/20">{parsedData.companies?.length || 0} Active</span>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
                       {parsedData.companies?.map((company, i) => (
                         <motion.div
                           key={i}
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: 0.6 + i * 0.1 }}
-                          className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-6 hover:border-amber-500/30 transition-all group"
+                          className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-5 sm:p-6 hover:border-amber-500/30 transition-all group min-w-0"
                         >
-                          <div className="flex items-start justify-between mb-4">
-                            <div>
-                              <h4 className="text-lg font-black uppercase italic">{company.name}</h4>
-                              <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">{company.location}</p>
+                          <div className="flex items-start justify-between gap-4 mb-4">
+                            <div className="min-w-0">
+                              <h4 className="text-base sm:text-lg font-black uppercase italic truncate">{company.name}</h4>
+                              <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] truncate">{company.location}</p>
                             </div>
                             <div className="text-right">
                               <div className="text-2xl font-black text-amber-500">{company.matchScore}%</div>
@@ -394,14 +420,14 @@ const Dashboard = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
-                className="lg:col-span-4 space-y-8"
+                className="xl:col-span-4 space-y-6 lg:space-y-8"
               >
                 {/* Weekly Goals */}
                 <motion.div 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-8"
+                  className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-5 sm:p-6 lg:p-8"
                 >
                   <div className="flex items-center gap-3 mb-6">
                     <Calendar size={18} className="text-amber-500" />
@@ -440,7 +466,7 @@ const Dashboard = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-8"
+                  className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-5 sm:p-6 lg:p-8"
                 >
                   <div className="flex items-center gap-3 mb-6">
                     <Award size={18} className="text-amber-500" />
@@ -468,9 +494,9 @@ const Dashboard = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-8"
+                  className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-5 sm:p-6 lg:p-8"
                 >
-                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white mb-6">Quick Links</h3>
+                  <h3 className="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-white mb-6">Quick Links</h3>
                   <nav className="space-y-3">
                     {[
                       { icon: FileText, label: 'Resume Analysis', action: () => navigate('/resume-parsing'), active: false },
@@ -495,7 +521,7 @@ const Dashboard = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-3xl p-8 text-black relative overflow-hidden"
+                  className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-3xl p-5 sm:p-6 lg:p-8 text-black relative overflow-hidden"
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 blur-[60px] -mr-16 -mt-16 rounded-full" />
                   <div className="flex items-center gap-2 mb-3">
