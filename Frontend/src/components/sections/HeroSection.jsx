@@ -9,7 +9,6 @@ import {
   Code2,
   BookOpen,
   TrendingUp,
-  ChevronRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -52,84 +51,105 @@ const ParticleField = () => {
   );
 };
 
-const orbitItems = [
-  { icon: FileSearch, label: "OCR", angle: 0 },
-  { icon: Code2, label: "DSA", angle: 90 },
-  { icon: Target, label: "MATCH", angle: 180 },
-  { icon: Workflow, label: "FLOW", angle: 270 },
-];
+const NodeCard = ({ icon: Icon, label, positionClass, floatProps }) => (
+  <motion.div 
+    className={`absolute ${positionClass} w-[84px] h-[84px] rounded-[22px] border border-amber-500/30 bg-[#110a00]/90 backdrop-blur-md flex flex-col items-center justify-center gap-1.5 shadow-[0_0_25px_rgba(245,158,11,0.15)] z-30 cursor-pointer`}
+    whileHover={{ scale: 1.15, borderColor: "rgba(245,158,11,0.8)", boxShadow: "0 0 40px rgba(245,158,11,0.5)" }}
+    animate={floatProps.animate}
+    transition={floatProps.transition}
+  >
+    <Icon size={24} className="text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+    <span className="text-[10px] font-black tracking-widest text-slate-300 uppercase">{label}</span>
+  </motion.div>
+);
 
-const AIOrb = () => {
-  const radius = 130;
-
+const StunningAIOrb = () => {
   return (
-    <div className="relative w-[320px] h-[320px] flex items-center justify-center">
-      <div className="absolute inset-0 rounded-full border border-amber-500/10 animate-pulse" />
-      <div className="absolute inset-[-20px] rounded-full border border-amber-500/5" />
-      <div className="absolute inset-[-40px] rounded-full border border-amber-500/[0.03]" />
+    <div className="relative w-[480px] h-[480px] flex items-center justify-center scale-75 md:scale-90 lg:scale-100 origin-center">
+      {/* Background Ambience */}
+      <div className="absolute inset-0 rounded-full bg-amber-500/10 blur-[100px]" />
 
-      <motion.div
-        className="absolute inset-[-10px] rounded-full"
-        style={{ background: "transparent", border: "1px dashed rgba(245,158,11,0.15)" }}
-        animate={{ rotate: 360 }}
-        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-      />
+      {/* SVG Orbits & Anchor Lines */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 500 500">
+        <defs>
+          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        </defs>
 
-      <motion.div
-        className="absolute"
-        style={{ width: radius * 2, height: radius * 2 }}
-        animate={{ rotate: 360 }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-      >
-        {orbitItems.map((item, i) => {
-          const rad = (item.angle * Math.PI) / 180;
-          const x = radius * Math.cos(rad);
-          const y = radius * Math.sin(rad);
+        {/* Diagonal Orbit 1 */}
+        <g transform="rotate(45 250 250)">
+          <ellipse cx="250" cy="250" rx="220" ry="80" fill="none" stroke="rgba(245,158,11,0.2)" strokeWidth="1.5" />
+          <motion.ellipse 
+            cx="250" cy="250" rx="220" ry="80" fill="none" stroke="rgba(245,158,11,0.9)" strokeWidth="3" 
+            strokeDasharray="20 1500" strokeLinecap="round" filter="url(#glow)"
+            animate={{ strokeDashoffset: [1500, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }} 
+          />
+          <motion.ellipse 
+            cx="250" cy="250" rx="220" ry="80" fill="none" stroke="rgba(245,158,11,0.9)" strokeWidth="3" 
+            strokeDasharray="20 1500" strokeLinecap="round" filter="url(#glow)"
+            animate={{ strokeDashoffset: [1500, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "linear", delay: 2 }} 
+          />
+        </g>
+        
+        {/* Diagonal Orbit 2 */}
+        <g transform="rotate(-45 250 250)">
+          <ellipse cx="250" cy="250" rx="220" ry="80" fill="none" stroke="rgba(245,158,11,0.2)" strokeWidth="1.5" />
+          <motion.ellipse 
+            cx="250" cy="250" rx="220" ry="80" fill="none" stroke="rgba(245,158,11,0.9)" strokeWidth="3" 
+            strokeDasharray="20 1500" strokeLinecap="round" filter="url(#glow)"
+            animate={{ strokeDashoffset: [1500, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "linear", delay: 1 }} 
+          />
+        </g>
 
-          return (
-            <motion.div
-              key={i}
-              className="absolute flex flex-col items-center justify-center"
-              style={{ width: 60, height: 60, left: radius + x - 30, top: radius + y - 30 }}
-            >
-              <motion.div
-                className="w-[58px] h-[58px] rounded-2xl border border-white/10 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center gap-1 cursor-pointer group"
-                animate={{ rotate: -360 }}
-                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                whileHover={{
-                  scale: 1.15,
-                  borderColor: "rgba(245,158,11,0.6)",
-                  boxShadow: "0 0 24px rgba(245,158,11,0.3)",
-                }}
-              >
-                <item.icon size={18} className="text-amber-400/70 group-hover:text-amber-400 transition-colors" />
-                <span className="text-[7px] font-black tracking-widest text-slate-600 group-hover:text-amber-500 transition-colors uppercase">
-                  {item.label}
-                </span>
-              </motion.div>
-            </motion.div>
-          );
-        })}
-      </motion.div>
-
-      <motion.div
-        className="relative z-10 w-[110px] h-[110px] rounded-3xl bg-gradient-to-br from-amber-500/15 to-black border border-amber-500/30 flex flex-col items-center justify-center gap-2 cursor-pointer"
-        animate={{ scale: [1, 1.04, 1] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        whileHover={{ borderColor: "rgba(245,158,11,0.7)", boxShadow: "0 0 40px rgba(245,158,11,0.25)" }}
-      >
-        <div className="absolute inset-0 rounded-3xl bg-amber-500/5 blur-xl" />
-        <Brain size={30} className="text-amber-400 relative z-10" />
-        <span className="text-[8px] font-black tracking-[0.35em] text-amber-500 uppercase relative z-10">AI Core</span>
-      </motion.div>
-
-      <motion.div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none" style={{ opacity: 0.06 }}>
-        <motion.div
-          className="absolute inset-x-0 h-px bg-amber-400"
-          animate={{ top: ["0%", "100%", "0%"] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+        {/* Outer Circular Orbit */}
+        <circle cx="250" cy="250" r="190" fill="none" stroke="rgba(245,158,11,0.15)" strokeWidth="1.5" strokeDasharray="4 8" />
+        <motion.circle 
+          cx="250" cy="250" r="190" fill="none" stroke="rgba(245,158,11,0.7)" strokeWidth="2" 
+          strokeDasharray="15 1500" strokeLinecap="round" filter="url(#glow)"
+          animate={{ strokeDashoffset: [1500, 0] }} transition={{ duration: 7, repeat: Infinity, ease: "linear" }} 
         />
+
+        {/* Radial Anchor Lines connecting AI Core perfectly to the center of the 4 nodes */}
+        <g stroke="rgba(245,158,11,0.3)" strokeWidth="2" strokeDasharray="4 4" className="animate-pulse">
+          <line x1="250" y1="250" x2="250" y2="60" />
+          <line x1="250" y1="250" x2="250" y2="440" />
+          <line x1="250" y1="250" x2="60" y2="250" />
+          <line x1="250" y1="250" x2="440" y2="250" />
+        </g>
+      </svg>
+
+      {/* Central AI Core Node */}
+      <motion.div 
+        className="relative z-20 w-[140px] h-[140px] rounded-[32px] border border-amber-500/50 bg-gradient-to-br from-[#2a1b00] to-[#0a0600] shadow-[0_0_60px_rgba(245,158,11,0.3),inset_0_0_20px_rgba(245,158,11,0.2)] flex flex-col items-center justify-center gap-2 cursor-pointer"
+        whileHover={{ scale: 1.05, boxShadow: "0 0 80px rgba(245,158,11,0.5), inset 0 0 30px rgba(245,158,11,0.3)" }}
+        animate={{ scale: [1, 1.02, 1] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <div className="absolute inset-0 rounded-[32px] bg-amber-500/20 blur-md pointer-events-none" />
+        <Brain size={44} className="text-amber-500 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)] relative z-10" />
+        <span className="text-[11px] font-black tracking-[0.2em] text-amber-500 uppercase relative z-10">AI Core</span>
       </motion.div>
+
+      {/* 4 Satellite Nodes perfectly anchored using explicit pixel coordinates */}
+      {/* 480px width container. Node is 84px wide. Center is 240px. Left = 240 - 42 = 198px */}
+      <NodeCard 
+        icon={Code2} label="DSA" positionClass="top-[16px] left-[198px]" 
+        floatProps={{ animate: { y: [-4, 4, -4] }, transition: { duration: 4, repeat: Infinity, ease: "easeInOut" } }} 
+      />
+      <NodeCard 
+        icon={Workflow} label="FLOW" positionClass="bottom-[16px] left-[198px]" 
+        floatProps={{ animate: { y: [4, -4, 4] }, transition: { duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 } }} 
+      />
+      <NodeCard 
+        icon={FileSearch} label="OCR" positionClass="left-[16px] top-[198px]" 
+        floatProps={{ animate: { x: [-4, 4, -4] }, transition: { duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 } }} 
+      />
+      <NodeCard 
+        icon={Target} label="MATCH" positionClass="right-[16px] top-[198px]" 
+        floatProps={{ animate: { x: [4, -4, 4] }, transition: { duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1.5 } }} 
+      />
     </div>
   );
 };
@@ -153,17 +173,6 @@ const StatPill = ({ icon: Icon, value, label, delay = 0 }) => (
   </motion.div>
 );
 
-const FeatureTag = ({ children, delay }) => (
-  <motion.span
-    initial={{ opacity: 0, scale: 0.85 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ delay }}
-    className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-full border border-amber-500/20 text-amber-500/70 bg-amber-500/5"
-  >
-    {children}
-  </motion.span>
-);
-
 const HeroSection = () => {
   const [hovered, setHovered] = useState(false);
   const [roadmapCompany, setRoadmapCompany] = useState("");
@@ -176,36 +185,21 @@ const HeroSection = () => {
         setRoadmapCompany("");
         return;
       }
-
       const data = await getUserResults(user.uid);
       setRoadmapCompany(data?.companies?.[0]?.name || "");
     };
-
     loadRoadmapCompany();
   }, [user?.uid]);
 
-  const handleStartPreparing = () => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-
-    navigate("/dashboard");
-  };
-
-  const handleExploreRoadmap = () => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-
-    if (roadmapCompany) {
-      navigate(`/plan/${roadmapCompany}`);
-      return;
-    }
-
-    navigate("/dashboard");
-  };
+  const handleStartPreparing = () => navigate(user ? "/dashboard" : "/login");
+  const handleExploreRoadmap = () =>
+    navigate(
+      user
+        ? roadmapCompany
+          ? `/plan/${roadmapCompany}`
+          : "/dashboard"
+        : "/login",
+    );
 
   return (
     <section className="relative h-screen min-h-[650px] flex items-center justify-center overflow-hidden bg-[#080808] pt-20">
@@ -221,7 +215,9 @@ const HeroSection = () => {
       />
       <ParticleField />
 
-      <div className="relative z-10 max-w-7xl w-full mx-auto px-6 lg:px-12 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+      {/* TIGHTENED LAYOUT: max-w-[1100px] instead of 7xl, reduced gap to bring them closer */}
+      <div className="relative z-10 max-w-[1100px] w-full mx-auto px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 lg:gap-12 items-center justify-between">
+        {/* Left Side: Original Text Content */}
         <div className="flex flex-col">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -231,7 +227,9 @@ const HeroSection = () => {
           >
             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-amber-400">Precision Drive 2026</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-amber-400">
+                Precision Drive 2026
+              </span>
             </div>
           </motion.div>
 
@@ -242,7 +240,13 @@ const HeroSection = () => {
             className="mb-4"
           >
             <h1 className="text-[60px] lg:text-[76px] font-black leading-[0.88] tracking-[-0.04em] text-white">
-              <span className="block italic" style={{ WebkitTextFillColor: "transparent", WebkitTextStroke: "1px rgba(245,158,11,0.6)" }}>
+              <span
+                className="block italic"
+                style={{
+                  WebkitTextFillColor: "transparent",
+                  WebkitTextStroke: "1px rgba(245,158,11,0.6)",
+                }}
+              >
                 Target.
               </span>
               <span className="block text-white">Train.</span>
@@ -250,16 +254,15 @@ const HeroSection = () => {
             </h1>
           </motion.div>
 
-          <motion.div className="flex flex-wrap gap-2 mb-4" />
-
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
             className="text-[14px] text-slate-400 max-w-md mb-8 leading-relaxed"
           >
-            The definitive AI ecosystem for placement mastery. Crack DSA, ace mock interviews,
-            and land your dream offer - all in one precision-built platform.
+            The definitive AI ecosystem for placement mastery. Crack DSA, ace
+            mock interviews, and land your dream offer - all in one
+            precision-built platform.
           </motion.p>
 
           <motion.div
@@ -277,7 +280,10 @@ const HeroSection = () => {
               className="relative group px-8 py-[17px] bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest text-[11px] rounded-2xl transition-colors flex items-center gap-3 overflow-hidden"
             >
               <span className="relative z-10">Start Preparing</span>
-              <motion.div animate={{ x: hovered ? 4 : 0 }} transition={{ type: "spring", stiffness: 300 }}>
+              <motion.div
+                animate={{ x: hovered ? 4 : 0 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
                 <ArrowRight size={16} className="relative z-10" />
               </motion.div>
               <div className="absolute inset-0 bg-gradient-to-r from-amber-400 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -296,47 +302,23 @@ const HeroSection = () => {
 
           <div className="flex flex-wrap gap-3">
             <StatPill icon={Target} value={24} label="Companies" delay={0.1} />
-            <StatPill icon={TrendingUp} value={86} label="Readiness" delay={0.2} />
+            <StatPill
+              icon={TrendingUp}
+              value={86}
+              label="Readiness"
+              delay={0.2}
+            />
           </div>
         </div>
 
+        {/* Right Side: The New Stunning AI Core Orbit */}
         <motion.div
           initial={{ opacity: 0, scale: 0.88 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1, ease: "easeOut" }}
-          className="flex flex-col items-center justify-center gap-5"
+          className="flex flex-col items-center justify-center relative"
         >
-          <AIOrb />
-
-          <div className="grid grid-cols-2 gap-2 w-full max-w-[420px]">
-            {[
-              { icon: Code2, title: "DSA Practice", desc: "500+ curated problems" },
-              { icon: Target, title: "Mock Drives", desc: "Real company patterns" },
-              { icon: Brain, title: "AI Feedback", desc: "Instant code review" },
-              { icon: TrendingUp, title: "Progress Track", desc: "Visual growth map" },
-            ].map((card, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 + i * 0.1 }}
-                whileHover={{
-                  scale: 1.03,
-                  borderColor: "rgba(245,158,11,0.3)",
-                  backgroundColor: "rgba(245,158,11,0.05)",
-                }}
-                className="p-3 rounded-xl border border-white/6 bg-white/[0.02] cursor-pointer transition-colors group flex items-center gap-3"
-              >
-                <div className="w-8 h-8 shrink-0 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                  <card.icon size={14} className="text-amber-400 group-hover:text-amber-300 transition-colors" />
-                </div>
-                <div className="text-left">
-                  <p className="text-[10px] font-black text-white mb-0.5 uppercase tracking-wide">{card.title}</p>
-                  <p className="text-[8px] text-slate-500 leading-tight">{card.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          <StunningAIOrb />
         </motion.div>
       </div>
 
